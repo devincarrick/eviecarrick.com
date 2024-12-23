@@ -1,0 +1,20 @@
+# Node/CDK
+*.js
+!jest.config.js
+*.d.ts
+node_modules/
+cdk.out/
+.cdk.staging/
+
+# AWS credentials
+.env
+.aws/
+
+# OS files
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Claude
+claude/
