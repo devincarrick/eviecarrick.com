@@ -1,5 +1,5 @@
 // deploy-dev.ts
-import { deployDevEnvironment } from "./deploy-validate";
+import { deployDevEnvironment } from "./deploy-validate.js";
 
 async function main() {
   console.log("Starting deployment process...");
