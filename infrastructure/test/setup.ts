@@ -1,11 +1,11 @@
 // test/setup.ts
-import { Template } from 'aws-cdk-lib/assertions';
-import * as cdk from 'aws-cdk-lib';
+import { Template } from "aws-cdk-lib/assertions";
+import * as cdk from "aws-cdk-lib";
 
 // Global test utilities
 export const createTestStack = () => {
   const app = new cdk.App();
-  const stack = new cdk.Stack(app, 'TestStack');
+  const stack = new cdk.Stack(app, "TestStack");
   return stack;
 };
 
@@ -18,10 +18,10 @@ export const getTemplateFromStack = (stack: cdk.Stack): Template => {
 export const hasResourceWithProperties = (
   template: Template,
   type: string,
-  props: Record<string, any>
+  props: Record<string, unknown>
 ) => {
   template.hasResourceProperties(type, props);
 };
 
 // Mock context values
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV = "test";

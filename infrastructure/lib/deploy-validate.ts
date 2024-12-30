@@ -38,7 +38,7 @@ async function deployDevEnvironment(stage: string = "dev") {
       if (Stacks?.[0]?.StackId) {
         originalState.stackId = Stacks[0].StackId;
       }
-    } catch (error) {
+    } catch (_error) {
       // Stack doesn't exist yet, that's okay for first deployment
       console.log("No existing stack found - proceeding with first deployment");
     }
@@ -160,8 +160,14 @@ async function validateS3Bucket(bucketName: string) {
     // Add OAI validation
     const policy = await s3.getBucketPolicy({ Bucket: bucketName }).promise();
     const policyDocument = JSON.parse(policy.Policy || "{}");
-    const hasOAIStatement = policyDocument.Statement?.some((statement: any) =>
-      statement.Principal?.AWS?.includes("cloudfront.amazonaws.com")
+    interface PolicyStatement {
+      Principal?: {
+        AWS?: string[];
+      };
+    }
+    const hasOAIStatement = policyDocument.Statement?.some(
+      (statement: PolicyStatement) =>
+        statement.Principal?.AWS?.includes("cloudfront.amazonaws.com")
     );
     console.log(
       "✓ OAI configuration:",
