@@ -38,7 +38,7 @@ async function deployDevEnvironment(stage: string = "dev") {
       if (Stacks?.[0]?.StackId) {
         originalState.stackId = Stacks[0].StackId;
       }
-    } catch (_error) {
+    } catch {
       // Stack doesn't exist yet, that's okay for first deployment
       console.log("No existing stack found - proceeding with first deployment");
     }
