@@ -12,7 +12,7 @@
     "test:update": "jest --updateSnapshot",
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit",
     "type-check": "tsc --noEmit",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
