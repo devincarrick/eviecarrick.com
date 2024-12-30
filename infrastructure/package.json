@@ -11,7 +11,7 @@
     "test:update": "jest --updateSnapshot",
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit",
     "type-check": "tsc --noEmit",
-    "lint": "eslint \"**/*.ts\"",
+    "lint": "eslint .",
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.203.0",
+    "@eslint/js": "^9.17.0",
     "@types/jest": "^29.5.14",
     "@types/node": "22.7.9",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
