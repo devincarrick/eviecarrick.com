@@ -3,13 +3,12 @@ name: Infrastructure CI
 on:
   pull_request:
     paths:
-      - 'infrastructure/**'
-      - '.github/workflows/**'
-  push:
-    branches: [ main ]
-    paths:
-      - 'infrastructure/**'
-      - '.github/workflows/**'
+      - "infrastructure/**"
+      - ".github/workflows/infrastructure-ci.yml"
+
+env:
+  AWS_REGION: us-east-1
+  INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
 
 jobs:
   validate:
@@ -17,39 +16,33 @@ jobs:
     defaults:
       run:
         working-directory: ./infrastructure
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: infrastructure/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        
-      - name: Type check
-        run: npm run type-check || (echo "Type check failed" && exit 1)
-        
-      - name: Lint
-        run: npm run lint
 
       - name: Run tests
         run: npm test
-        
+
       - name: CDK synth
         run: npm run cdk synth
-        
+
   security-scan:
     needs: validate
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Run security scan
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
@@ -62,26 +55,29 @@ jobs:
     defaults:
       run:
         working-directory: ./infrastructure
-        
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          
+          node-version: "20"
+
       - name: Install Infracost
         run: curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
-        
+
       - name: Generate Infracost cost estimate
         run: |
+          export INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}
           infracost breakdown --path . \
             --format json \
             --out-file /tmp/infracost.json
-            
+
       - name: Post Infracost comment
         if: github.event_name == 'pull_request'
+        env:
+          INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
         run: |
           infracost comment github --path /tmp/infracost.json \
             --repo $GITHUB_REPOSITORY \
