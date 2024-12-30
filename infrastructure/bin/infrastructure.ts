@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import { PortfolioInfraStack } from '../lib/infrastructure-stack';
+import * as cdk from "aws-cdk-lib";
+import { PortfolioInfraStack } from "../lib/infrastructure-stack.js";
 
 const app = new cdk.App();
-new PortfolioInfraStack(app, 'PortfolioInfraStack', {
+new PortfolioInfraStack(app, "PortfolioInfraStack", {
   env: {
-    account: '296823332599',
-    region: 'us-east-1'
+    account: "296823332599",
+    region: "us-east-1",
   },
 });

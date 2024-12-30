@@ -1,7 +1,7 @@
 // test/infrastructure-stack.test.ts
 import * as cdk from "aws-cdk-lib";
 import { Template, Match } from "aws-cdk-lib/assertions";
-import { PortfolioInfraStack } from "../lib/infrastructure-stack";
+import { PortfolioInfraStack } from "../lib/infrastructure-stack.js";
 
 describe("PortfolioInfraStack", () => {
   let app: cdk.App;
