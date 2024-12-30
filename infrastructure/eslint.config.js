@@ -12,6 +12,14 @@ export default [
         ecmaVersion: "latest",
         sourceType: "module",
       },
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        setTimeout: "readonly",
+        require: "readonly",
+        module: "readonly",
+        __dirname: "readonly",
+      },
     },
     plugins: {
       "@typescript-eslint": typescript,
@@ -20,6 +28,25 @@ export default [
       ...typescript.configs["recommended"].rules,
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/*.test.ts", "**/test/**/*.ts"],
+    languageOptions: {
+      globals: {
+        describe: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        jest: "readonly",
+      },
     },
   },
   {
