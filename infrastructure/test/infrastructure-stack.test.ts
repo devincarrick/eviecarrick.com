@@ -1,9 +1,9 @@
 // test/infrastructure-stack.test.ts
-import * as cdk from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
-import { PortfolioInfraStack } from '../lib/infrastructure-stack';
+import * as cdk from "aws-cdk-lib";
+import { Template } from "aws-cdk-lib/assertions";
+import { PortfolioInfraStack } from "../lib/infrastructure-stack";
 
-describe('PortfolioInfraStack', () => {
+describe("PortfolioInfraStack", () => {
   let app: cdk.App;
   let stack: PortfolioInfraStack;
   let template: Template;
@@ -11,74 +11,70 @@ describe('PortfolioInfraStack', () => {
   beforeEach(() => {
     app = new cdk.App({
       context: {
-        stage: 'dev'
-      }
+        stage: "dev",
+      },
     });
-    stack = new PortfolioInfraStack(app, 'TestStack');
+    // Mock the account ID
+    const testEnv = {
+      account: "123456789012",
+      region: "us-east-1",
+    };
+    stack = new PortfolioInfraStack(app, "TestStack", { env: testEnv });
     template = Template.fromStack(stack);
   });
 
-  test('creates S3 bucket with correct configuration', () => {
-    template.hasResourceProperties('AWS::S3::Bucket', {
-      BucketName: {
-        'Fn::Join': [
-          '',
-          [
-            'portfolio-dev-',
-            {
-              Ref: 'AWS::AccountId'
-            }
-          ]
-        ]
-      },
+  test("creates S3 bucket with correct configuration", () => {
+    template.hasResourceProperties("AWS::S3::Bucket", {
+      BucketName: "portfolio-dev-123456789012",
       PublicAccessBlockConfiguration: {
         BlockPublicAcls: true,
         BlockPublicPolicy: true,
         IgnorePublicAcls: true,
-        RestrictPublicBuckets: true
+        RestrictPublicBuckets: true,
       },
       VersioningConfiguration: {
-        Status: 'Enabled'
-      }
+        Status: "Enabled",
+      },
     });
   });
 
-  test('creates CloudFront distribution with security headers', () => {
-    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+  test("creates CloudFront distribution with security headers", () => {
+    template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: {
         DefaultCacheBehavior: {
           ResponseHeadersPolicyId: {
-            Ref: expect.stringMatching(/SecurityHeadersPolicy-dev/)
+            Ref: expect.stringMatching(/SecurityHeadersPolicy-dev/),
           },
-          ViewerProtocolPolicy: 'redirect-to-https',
-          Compress: true
+          ViewerProtocolPolicy: "redirect-to-https",
+          Compress: true,
         },
-        PriceClass: 'PriceClass_100'
-      }
+        PriceClass: "PriceClass_100",
+      },
     });
   });
 
-  test('has required security headers policy', () => {
-    template.hasResourceProperties('AWS::CloudFront::ResponseHeadersPolicy', {
+  test("has required security headers policy", () => {
+    template.hasResourceProperties("AWS::CloudFront::ResponseHeadersPolicy", {
       ResponseHeadersPolicyConfig: {
         SecurityHeadersConfig: {
           ContentSecurityPolicy: {
-            ContentSecurityPolicy: expect.stringContaining("default-src 'self'"),
-            Override: true
+            ContentSecurityPolicy:
+              expect.stringContaining("default-src 'self'"),
+            Override: true,
           },
           StrictTransportSecurity: {
             Override: true,
-            Preload: true
-          }
-        }
-      }
+            Preload: true,
+          },
+        },
+      },
     });
   });
 
-  test('creates cost alarms for dev environment', () => {
-    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
-      MetricName: 'EstimatedCharges',
-      Threshold: 5
+  test("creates cost alarms for dev environment", () => {
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      MetricName: "EstimatedCharges",
+      Threshold: 5,
     });
   });
 });
