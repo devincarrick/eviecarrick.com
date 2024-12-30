@@ -6,11 +6,11 @@
     "infrastructure": "bin/infrastructure.js"
   },
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:update": "jest --updateSnapshot",
-    "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit",
+    "test": "node --max_old_space_size=4096 node_modules/.bin/jest",
+    "test:watch": "node --max_old_space_size=4096 node_modules/.bin/jest --watch",
+    "test:coverage": "node --max_old_space_size=4096 node_modules/.bin/jest --coverage",
+    "test:update": "node --max_old_space_size=4096 node_modules/.bin/jest --updateSnapshot",
+    "test:ci": "node --max_old_space_size=4096 node_modules/.bin/jest --ci --coverage --reporters=default --reporters=jest-junit",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "build": "tsc",
