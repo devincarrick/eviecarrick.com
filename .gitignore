@@ -1,6 +1,8 @@
 # Node/CDK
 *.js
 !jest.config.js
+!infrastructure/eslint.config.js
+!infrastructure/.eslintrc.js
 *.d.ts
 node_modules/
 cdk.out/
