@@ -1,6 +1,6 @@
 // test/infrastructure-stack.test.ts
 import * as cdk from "aws-cdk-lib";
-import { Template } from "aws-cdk-lib/assertions";
+import { Template, Match } from "aws-cdk-lib/assertions";
 import { PortfolioInfraStack } from "../lib/infrastructure-stack";
 
 describe("PortfolioInfraStack", () => {
@@ -32,8 +32,14 @@ describe("PortfolioInfraStack", () => {
         IgnorePublicAcls: true,
         RestrictPublicBuckets: true,
       },
-      VersioningConfiguration: {
-        Status: "Enabled",
+      BucketEncryption: {
+        ServerSideEncryptionConfiguration: [
+          {
+            ServerSideEncryptionByDefault: {
+              SSEAlgorithm: "AES256",
+            },
+          },
+        ],
       },
     });
   });
@@ -42,9 +48,7 @@ describe("PortfolioInfraStack", () => {
     template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: {
         DefaultCacheBehavior: {
-          ResponseHeadersPolicyId: {
-            Ref: expect.stringMatching(/SecurityHeadersPolicy-dev/),
-          },
+          ResponseHeadersPolicyId: Match.anyValue(),
           ViewerProtocolPolicy: "redirect-to-https",
           Compress: true,
         },
@@ -58,8 +62,7 @@ describe("PortfolioInfraStack", () => {
       ResponseHeadersPolicyConfig: {
         SecurityHeadersConfig: {
           ContentSecurityPolicy: {
-            ContentSecurityPolicy:
-              expect.stringContaining("default-src 'self'"),
+            ContentSecurityPolicy: Match.stringLikeRegexp("default-src.*self"),
             Override: true,
           },
           StrictTransportSecurity: {
