@@ -4,6 +4,7 @@ name: Infrastructure CI
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 on:
   pull_request:
