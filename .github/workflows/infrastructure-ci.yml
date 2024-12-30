@@ -1,5 +1,10 @@
 name: Infrastructure CI
 
+# Add permissions block at the top level
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   pull_request:
     paths:
