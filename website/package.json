@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "concurrently \"tailwindcss -i ./src/input.css -o ./dist/output.css --watch\" \"live-server . --port=3000 --open=/src/index.html\"",
-    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify"
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
