@@ -195,9 +195,9 @@ export class PortfolioInfraStack extends cdk.Stack {
     });
 
     // Stack outputs
-    new cdk.CfnOutput(this, `${stage}DistributionDomainName`, {
-      value: distribution.distributionDomainName,
-      description: `${stage} CloudFront Distribution Domain Name`,
+    new cdk.CfnOutput(this, `${stage}DistributionId`, {
+      value: distribution.distributionId,
+      description: `${stage} CloudFront Distribution ID`,
     });
 
     new cdk.CfnOutput(this, `${stage}BucketName`, {
