@@ -1,24 +1,18 @@
-// deploy-validate.ts
 import { execSync } from "child_process";
-import * as AWS from "aws-sdk";
-import {
-  CloudFormation,
-  S3,
-  CloudFront,
-  CloudWatch,
-  CloudWatchLogs,
-} from "aws-sdk";
+import { CloudFormation, Output } from "@aws-sdk/client-cloudformation";
+import { S3 } from "@aws-sdk/client-s3";
+import { CloudFront } from "@aws-sdk/client-cloudfront";
+import { CloudWatch } from "@aws-sdk/client-cloudwatch";
+import { CloudWatchLogs } from "@aws-sdk/client-cloudwatch-logs";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-// Configure AWS SDK
-AWS.config.update({ region: "us-east-1" });
-
-const s3 = new S3();
-const cloudFront = new CloudFront();
-const cloudWatch = new CloudWatch();
-const cloudformation = new CloudFormation();
-const cloudWatchLogs = new CloudWatchLogs();
+const config = { region: "us-east-1" };
+const s3 = new S3(config);
+const cloudFront = new CloudFront(config);
+const cloudWatch = new CloudWatch(config);
+const cloudformation = new CloudFormation(config);
+const cloudWatchLogs = new CloudWatchLogs(config);
 
 async function deployDevEnvironment(stage: string = "dev") {
   const startTime = Date.now();
@@ -30,11 +24,9 @@ async function deployDevEnvironment(stage: string = "dev") {
   try {
     // Check if stack exists first
     try {
-      const { Stacks } = await cloudformation
-        .describeStacks({
-          StackName: "PortfolioInfraStack",
-        })
-        .promise();
+      const { Stacks } = await cloudformation.describeStacks({
+        StackName: "PortfolioInfraStack",
+      });
       if (Stacks?.[0]?.StackId) {
         originalState.stackId = Stacks[0].StackId;
       }
@@ -53,10 +45,10 @@ async function deployDevEnvironment(stage: string = "dev") {
     // 2. Get Stack Outputs
     const stackOutputs = await getStackOutputs("PortfolioInfraStack");
     const bucketName = stackOutputs.find(
-      (o) => o.OutputKey === "devBucketName"
+      (o: Output) => o.OutputKey === "devBucketName"
     )?.OutputValue;
     const distributionDomain = stackOutputs.find(
-      (o) => o.OutputKey === "devDistributionDomainName"
+      (o: Output) => o.OutputKey === "devDistributionDomainName"
     )?.OutputValue;
 
     if (!bucketName || !distributionDomain) {
@@ -80,24 +72,22 @@ async function deployDevEnvironment(stage: string = "dev") {
     console.log(`Deployment completed in ${deploymentDuration} seconds`);
 
     // Log deployment metrics
-    await cloudWatch
-      .putMetricData({
-        Namespace: "Portfolio/Deployments",
-        MetricData: [
-          {
-            MetricName: "DeploymentDuration",
-            Value: deploymentDuration,
-            Unit: "Seconds",
-            Dimensions: [
-              {
-                Name: "Environment",
-                Value: "dev",
-              },
-            ],
-          },
-        ],
-      })
-      .promise();
+    await cloudWatch.putMetricData({
+      Namespace: "Portfolio/Deployments",
+      MetricData: [
+        {
+          MetricName: "DeploymentDuration",
+          Value: deploymentDuration,
+          Unit: "Seconds",
+          Dimensions: [
+            {
+              Name: "Environment",
+              Value: "dev",
+            },
+          ],
+        },
+      ],
+    });
 
     return { bucketName, distributionDomain };
   } catch (error) {
@@ -107,11 +97,9 @@ async function deployDevEnvironment(stage: string = "dev") {
     if (originalState.stackId) {
       console.log("Attempting rollback...");
       try {
-        await cloudformation
-          .rollbackStack({
-            StackName: "PortfolioInfraStack",
-          })
-          .promise();
+        await cloudformation.rollbackStack({
+          StackName: "PortfolioInfraStack",
+        });
         console.log("Rollback completed");
       } catch (rollbackError) {
         console.error("Rollback failed:", rollbackError);
@@ -123,9 +111,9 @@ async function deployDevEnvironment(stage: string = "dev") {
 }
 
 async function getStackOutputs(stackName: string) {
-  const { Stacks } = await cloudformation
-    .describeStacks({ StackName: stackName })
-    .promise();
+  const { Stacks } = await cloudformation.describeStacks({
+    StackName: stackName,
+  });
   return Stacks?.[0].Outputs || [];
 }
 
@@ -134,7 +122,7 @@ async function validateS3Bucket(bucketName: string) {
 
   try {
     // Check bucket exists and is accessible
-    await s3.headBucket({ Bucket: bucketName }).promise();
+    await s3.headBucket({ Bucket: bucketName });
     console.log("✓ Bucket exists and is accessible");
 
     // Add retries for AWS API calls
@@ -147,7 +135,7 @@ async function validateS3Bucket(bucketName: string) {
     let attempts = 0;
     while (attempts < retryOptions.maxRetries) {
       try {
-        await s3.getBucketPolicy({ Bucket: bucketName }).promise();
+        await s3.getBucketPolicy({ Bucket: bucketName });
         console.log("✓ Bucket policy is configured");
         break;
       } catch (error) {
@@ -158,7 +146,7 @@ async function validateS3Bucket(bucketName: string) {
     }
 
     // Add OAI validation
-    const policy = await s3.getBucketPolicy({ Bucket: bucketName }).promise();
+    const policy = await s3.getBucketPolicy({ Bucket: bucketName });
     const policyDocument = JSON.parse(policy.Policy || "{}");
     interface PolicyStatement {
       Principal?: {
@@ -183,7 +171,7 @@ async function validateCloudFrontDistribution(distributionDomain: string) {
   console.log("\nValidating CloudFront distribution...");
 
   // List distributions and find ours
-  const { DistributionList } = await cloudFront.listDistributions().promise();
+  const { DistributionList } = await cloudFront.listDistributions();
   const distribution = DistributionList?.Items?.find(
     (dist) => dist.DomainName === distributionDomain
   );
@@ -202,22 +190,24 @@ async function validateCloudFrontDistribution(distributionDomain: string) {
   );
   console.log(
     "✓ SSL Certificate:",
-    distribution.ViewerCertificate.CertificateSource === "acm"
+    distribution?.ViewerCertificate?.CertificateSource === "acm"
       ? "ACM configured"
       : "WARNING: No ACM cert"
   );
   console.log(
     "✓ Compression:",
-    distribution.DefaultCacheBehavior.Compress ? "Enabled" : "WARNING: Disabled"
+    distribution?.DefaultCacheBehavior?.Compress
+      ? "Enabled"
+      : "WARNING: Disabled"
   );
 
   if (distribution) {
     // Add cache behavior validation
     const cacheBehavior = distribution.DefaultCacheBehavior;
     console.log("✓ Cache TTL settings:", {
-      defaultTTL: cacheBehavior.DefaultTTL,
-      maxTTL: cacheBehavior.MaxTTL,
-      minTTL: cacheBehavior.MinTTL,
+      defaultTTL: cacheBehavior?.DefaultTTL,
+      maxTTL: cacheBehavior?.MaxTTL,
+      minTTL: cacheBehavior?.MinTTL,
     });
   }
 }
@@ -226,7 +216,7 @@ async function validateCloudWatchDashboard() {
   console.log("\nValidating CloudWatch setup...");
 
   // Check dashboard exists
-  const response = await cloudWatch.listDashboards().promise();
+  const response = await cloudWatch.listDashboards();
   const devDashboard = response.DashboardEntries?.find(
     (entry) =>
       entry.DashboardName && entry.DashboardName.includes("Portfolio-dev")
@@ -236,11 +226,9 @@ async function validateCloudWatchDashboard() {
     console.log("✓ Dashboard exists");
 
     // Verify log retention settings
-    const { metricFilters } = await cloudWatchLogs
-      .describeMetricFilters({
-        logGroupName: "/aws/cloudfront/dev.eviecarrick.com",
-      })
-      .promise();
+    const { metricFilters } = await cloudWatchLogs.describeMetricFilters({
+      logGroupName: "/aws/cloudfront/dev.eviecarrick.com",
+    });
 
     console.log(
       "✓ Metric filters configured:",
