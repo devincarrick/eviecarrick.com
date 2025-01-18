@@ -102,9 +102,12 @@ jobs:
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
             --stack-name "PortfolioInfraStack" \
-            --query "Stacks[0].Outputs[?OutputKey=='${STAGE}DistributionId'].OutputValue" \
+            --query "Stacks[0].Outputs[?OutputKey=='${STAGE}DistributionDomainName'].OutputValue" \
             --output text)
-            
+          
+          # Add debug output
+          echo "Distribution ID: $DISTRIBUTION_ID"
+          
           aws cloudfront create-invalidation \
-            --distribution-id $DISTRIBUTION_ID \
+            --distribution-id "$DISTRIBUTION_ID" \
             --paths "/*"
