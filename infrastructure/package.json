@@ -16,7 +16,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
-    "validate-deployment": "ts-node scripts/validate-deployment.ts"
+    "validate-deployment": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/validate-deployment.ts"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.203.0",
