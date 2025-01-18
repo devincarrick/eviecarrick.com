@@ -100,13 +100,19 @@ jobs:
       - name: Invalidate CloudFront
         run: |
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
+          echo "Looking for distribution ID for stage: $STAGE"
+          
           DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
             --stack-name "PortfolioInfraStack" \
-            --query "Stacks[0].Outputs[?OutputKey=='${STAGE}DistributionDomainName'].OutputValue" \
+            --query "Stacks[0].Outputs[?OutputKey=='${STAGE}DistributionId'].OutputValue" \
             --output text)
           
-          # Add debug output
-          echo "Distribution ID: $DISTRIBUTION_ID"
+          echo "Found Distribution ID: $DISTRIBUTION_ID"
+          
+          if [ -z "$DISTRIBUTION_ID" ]; then
+            echo "Error: Distribution ID not found"
+            exit 1
+          fi
           
           aws cloudfront create-invalidation \
             --distribution-id "$DISTRIBUTION_ID" \
