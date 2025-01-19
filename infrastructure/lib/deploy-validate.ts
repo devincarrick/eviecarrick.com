@@ -1,5 +1,8 @@
-import { CloudFormation } from "@aws-sdk/client-cloudformation";
-import { STS } from "@aws-sdk/client-sts";
+import {
+  CloudFormation,
+  CloudFormationServiceException,
+} from "@aws-sdk/client-cloudformation";
+import { STS, STSServiceException } from "@aws-sdk/client-sts";
 
 const config = {
   region: "us-east-1",
@@ -17,10 +20,10 @@ async function checkAwsCredentials(): Promise<void> {
     }
     console.log("✓ AWS credentials verified");
   } catch (error) {
-    console.error("AWS credentials check failed:", error);
-    throw new Error(
-      "Failed to verify AWS credentials. Please ensure AWS credentials are properly configured."
-    );
+    if (error instanceof STSServiceException) {
+      throw new Error(`AWS credentials check failed: ${error.message}`);
+    }
+    throw new Error(`AWS credentials check failed: ${String(error)}`);
   }
 }
 
@@ -31,7 +34,6 @@ async function deployDevEnvironment(stage: string = "dev") {
     try {
       await checkAwsCredentials();
     } catch (error) {
-      console.error("AWS credentials check failed:", error);
       throw new Error(
         `AWS credentials validation failed: ${
           error instanceof Error ? error.message : String(error)
@@ -57,7 +59,6 @@ async function deployDevEnvironment(stage: string = "dev") {
         JSON.stringify(stack.Outputs, null, 2)
       );
 
-      // Extract required outputs with correct keys
       const bucketName = stack.Outputs?.find(
         (output) => output.OutputKey === "devBucketName"
       )?.OutputValue;
@@ -66,22 +67,20 @@ async function deployDevEnvironment(stage: string = "dev") {
       )?.OutputValue;
 
       if (!bucketName || !distributionId) {
-        console.error("Missing outputs:", {
-          bucketName: !!bucketName,
-          distributionId: !!distributionId,
-        });
-        throw new Error("Required stack outputs not found");
+        throw new Error(
+          `Required stack outputs not found. Found outputs: ${JSON.stringify(
+            stack.Outputs
+          )}`
+        );
       }
 
       console.log("Stack validation successful");
       return { bucketName, distributionId };
     } catch (error) {
-      console.error("Stack validation failed:", error);
-      throw new Error(
-        `Stack validation failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
+      if (error instanceof CloudFormationServiceException) {
+        throw new Error(`CloudFormation service error: ${error.message}`);
+      }
+      throw error;
     }
   } catch (error) {
     console.error(
