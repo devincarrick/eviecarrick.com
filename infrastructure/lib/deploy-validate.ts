@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { CloudFormation, Output } from "@aws-sdk/client-cloudformation";
+import { CloudFormation } from "@aws-sdk/client-cloudformation";
 import { S3 } from "@aws-sdk/client-s3";
 import { CloudFront } from "@aws-sdk/client-cloudfront";
 import { CloudWatch } from "@aws-sdk/client-cloudwatch";
@@ -28,20 +28,30 @@ async function deployDevEnvironment(stage: string = "dev") {
   };
 
   try {
-    // Verify AWS credentials first
     await checkAwsCredentials();
 
     // Check if stack exists first
-    try {
-      const { Stacks } = await cloudformation.describeStacks({
-        StackName: "PortfolioInfraStack",
-      });
-      if (Stacks?.[0]?.StackId) {
-        originalState.stackId = Stacks[0].StackId;
-      }
-    } catch {
-      // Stack doesn't exist yet, that's okay for first deployment
-      console.log("No existing stack found - proceeding with first deployment");
+    const { Stacks } = await cloudformation.describeStacks({
+      StackName: "PortfolioInfraStack",
+    });
+
+    if (!Stacks || Stacks.length === 0) {
+      throw new Error("Stack not found");
+    }
+
+    const stack = Stacks[0];
+    originalState.stackId = stack.StackId || "";
+
+    // Extract required outputs
+    const bucketName = stack.Outputs?.find(
+      (output) => output.OutputKey === "WebsiteBucketName"
+    )?.OutputValue;
+    const distributionDomain = stack.Outputs?.find(
+      (output) => output.OutputKey === "DistributionDomain"
+    )?.OutputValue;
+
+    if (!bucketName || !distributionDomain) {
+      throw new Error("Required stack outputs not found");
     }
 
     // Deploy CDK Stack with provided stage
@@ -50,19 +60,6 @@ async function deployDevEnvironment(stage: string = "dev") {
       `cdk deploy PortfolioInfraStack --context stage=${stage} --require-approval never`,
       { stdio: "inherit" }
     );
-
-    // 2. Get Stack Outputs
-    const stackOutputs = await getStackOutputs("PortfolioInfraStack");
-    const bucketName = stackOutputs.find(
-      (o: Output) => o.OutputKey === "devBucketName"
-    )?.OutputValue;
-    const distributionDomain = stackOutputs.find(
-      (o: Output) => o.OutputKey === "devDistributionDomainName"
-    )?.OutputValue;
-
-    if (!bucketName || !distributionDomain) {
-      throw new Error("Required stack outputs not found");
-    }
 
     // 3. Validate S3 Bucket
     await validateS3Bucket(bucketName);
@@ -100,7 +97,8 @@ async function deployDevEnvironment(stage: string = "dev") {
 
     return { bucketName, distributionDomain };
   } catch (error) {
-    console.error("Deployment failed:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Deployment validation failed:", errorMessage);
 
     // Attempt rollback if needed
     if (originalState.stackId) {
@@ -111,19 +109,17 @@ async function deployDevEnvironment(stage: string = "dev") {
         });
         console.log("Rollback completed");
       } catch (rollbackError) {
-        console.error("Rollback failed:", rollbackError);
+        console.error(
+          "Rollback failed:",
+          rollbackError instanceof Error
+            ? rollbackError.message
+            : String(rollbackError)
+        );
       }
     }
 
-    throw error;
+    throw error; // Re-throw to be handled by the calling function
   }
-}
-
-async function getStackOutputs(stackName: string) {
-  const { Stacks } = await cloudformation.describeStacks({
-    StackName: stackName,
-  });
-  return Stacks?.[0].Outputs || [];
 }
 
 async function validateS3Bucket(bucketName: string) {

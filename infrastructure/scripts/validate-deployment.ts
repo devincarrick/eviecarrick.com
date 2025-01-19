@@ -5,23 +5,29 @@ async function validateDeployment() {
     console.log("Starting deployment validation...");
     const result = await deployDevEnvironment();
     console.log("Deployment validation successful:", result);
-    process.exit(0);
+    return result;
   } catch (error) {
     console.error(
       "Deployment validation failed:",
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : String(error)
     );
     if (error instanceof Error && error.stack) {
       console.error("Stack trace:", error.stack);
     }
-    process.exit(1);
+    throw error; // Re-throw to trigger process.exit(1)
   }
 }
 
 // Handle unhandled rejections globally
 process.on("unhandledRejection", (error) => {
-  console.error("Unhandled rejection:", error);
+  console.error(
+    "Unhandled rejection:",
+    error instanceof Error ? error.message : String(error)
+  );
   process.exit(1);
 });
 
-validateDeployment();
+// Execute and handle the promise chain properly
+validateDeployment()
+  .then(() => process.exit(0))
+  .catch(() => process.exit(1));
