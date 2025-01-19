@@ -1,69 +1,58 @@
-import { deployDevEnvironment } from "../lib/deploy-validate.ts";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+console.log('Starting validation script...');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-interface ValidationResult {
-  bucketName: string;
-  distributionId: string;
-  region: string;
-}
-
-async function validateDeployment(): Promise<ValidationResult> {
-  const region = process.env.AWS_REGION;
-  if (!region) {
-    throw new Error('AWS_REGION environment variable is not set');
+try {
+  const { deployDevEnvironment } = await import("../lib/deploy-validate.js");
+  
+  interface ValidationResult {
+    bucketName: string;
+    distributionId: string;
+    region: string;
   }
 
-  const nodeEnv = process.env.NODE_ENV || 'development';
-  console.log(`Starting deployment validation in ${nodeEnv} environment...`);
-  console.log(`AWS Region: ${region}`);
-  console.log('Attempting to deploy dev environment...');
-
-  try {
-    const result = await deployDevEnvironment().catch(err => {
-      const errorDetails = err instanceof Error ? err : JSON.stringify(err, null, 2);
-      console.error('Deploy error details:', errorDetails);
-      throw err;
-    });
+  async function validateDeployment(): Promise<ValidationResult> {
+    console.log('Entering validateDeployment function...');
     
-    console.log('Deploy result:', JSON.stringify(result, null, 2));
-    
-    if (!result?.bucketName || !result?.distributionId) {
-      throw new Error('Deployment validation failed: Missing required deployment outputs');
+    const region = process.env.AWS_REGION;
+    if (!region) {
+      throw new Error('AWS_REGION environment variable is not set');
     }
 
-    return {
-      bucketName: result.bucketName,
-      distributionId: result.distributionId,
-      region
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : JSON.stringify(error, null, 2);
+    console.log(`AWS Region: ${region}`);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    
+    try {
+      console.log('Attempting to deploy dev environment...');
+      const result = await deployDevEnvironment();
+      console.log('Deploy result:', JSON.stringify(result, null, 2));
       
-    console.error('Deployment validation error:', errorMessage);
-    throw error;
-  }
-}
+      if (!result?.bucketName || !result?.distributionId) {
+        throw new Error('Deployment validation failed: Missing required deployment outputs');
+      }
 
-// IIFE to handle top-level await and ensure proper error handling
-(async () => {
-  try {
-    const validationResult = await validateDeployment();
-    console.log('Deployment validation successful:', {
-      ...validationResult,
-      timestamp: new Date().toISOString()
-    });
-    process.exit(0);
-  } catch (error) {
-    console.error('Validation failed:', error instanceof Error ? error.message : JSON.stringify(error, null, 2));
-    if (error instanceof Error && error.stack) {
-      console.error('Stack trace:', error.stack);
+      return {
+        bucketName: result.bucketName,
+        distributionId: result.distributionId,
+        region
+      };
+    } catch (error) {
+      console.error('Deploy error:', error);
+      throw error;
     }
-    process.exit(1);
   }
-})();
+
+  // Execute validation
+  console.log('Starting validation...');
+  validateDeployment()
+    .then(result => {
+      console.log('Validation successful:', result);
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('Validation failed:', error);
+      process.exit(1);
+    });
+
+} catch (error) {
+  console.error('Script initialization error:', error);
+  process.exit(1);
+}
