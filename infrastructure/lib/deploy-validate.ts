@@ -1,97 +1,55 @@
 import {
-  CloudFormation,
-  CloudFormationServiceException,
+  CloudFormationClient,
+  DescribeStacksCommand,
 } from "@aws-sdk/client-cloudformation";
-import { STS, STSServiceException } from "@aws-sdk/client-sts";
 
-const config = {
-  region: "us-east-1",
-  maxAttempts: 3,
-  retryMode: "standard",
-};
-
-const cloudformation = new CloudFormation(config);
-
-async function checkAwsCredentials(): Promise<void> {
-  try {
-    const response = await new STS(config).getCallerIdentity({});
-    if (!response.Account) {
-      throw new Error("AWS credentials not found");
-    }
-    console.log("✓ AWS credentials verified");
-  } catch (error) {
-    if (error instanceof STSServiceException) {
-      throw new Error(`AWS credentials check failed: ${error.message}`);
-    }
-    throw new Error(`AWS credentials check failed: ${String(error)}`);
-  }
+interface StackOutput {
+  OutputKey?: string;
+  OutputValue?: string;
 }
 
-async function deployDevEnvironment(stage: string = "dev") {
+interface ValidationResult {
+  bucketName: string;
+  distributionId: string;
+}
+
+export async function deployDevEnvironment(): Promise<ValidationResult> {
+  const client = new CloudFormationClient({ region: process.env.AWS_REGION });
+  const stackName = process.env.STACK_NAME || "evie-carrick-portfolio-dev";
+
   try {
-    console.log("Starting deployment validation for stage:", stage);
-
-    try {
-      await checkAwsCredentials();
-    } catch (error) {
-      throw new Error(
-        `AWS credentials validation failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    }
-
-    try {
-      console.log("Checking CloudFormation stack...");
-      const response = await cloudformation.describeStacks({
-        StackName: "PortfolioInfraStack",
-      });
-
-      const Stacks = response?.Stacks || [];
-
-      if (!Stacks || Stacks.length === 0) {
-        throw new Error("Stack not found");
-      }
-
-      const stack = Stacks[0];
-      console.log(
-        "Found stack outputs:",
-        JSON.stringify(stack.Outputs, null, 2)
-      );
-
-      const bucketName = stack.Outputs?.find(
-        (output) => output.OutputKey === "devBucketName"
-      )?.OutputValue;
-      const distributionId = stack.Outputs?.find(
-        (output) => output.OutputKey === "devDistributionId"
-      )?.OutputValue;
-
-      if (!bucketName || !distributionId) {
-        throw new Error(
-          `Required stack outputs not found. Found outputs: ${JSON.stringify(
-            stack.Outputs
-          )}`
-        );
-      }
-
-      console.log("Stack validation successful");
-      return { bucketName, distributionId };
-    } catch (error) {
-      if (error instanceof CloudFormationServiceException) {
-        throw new Error(`CloudFormation service error: ${error.message}`);
-      }
-      throw error;
-    }
-  } catch (error) {
-    console.error(
-      "Deployment validation failed:",
-      error instanceof Error ? error.message : String(error)
+    const { Stacks } = await client.send(
+      new DescribeStacksCommand({ StackName: stackName })
     );
-    if (error instanceof Error && error.stack) {
-      console.error("Stack trace:", error.stack);
+
+    if (!Stacks || Stacks.length === 0) {
+      throw new Error(`Stack ${stackName} not found`);
     }
-    throw error;
+
+    const outputs = Stacks[0].Outputs;
+    if (!outputs) {
+      throw new Error("No outputs found in stack");
+    }
+
+    const bucketName = getOutputValue(outputs, "WebsiteBucketName");
+    const distributionId = getOutputValue(outputs, "DistributionId");
+
+    return {
+      bucketName,
+      distributionId,
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to validate deployment: ${error.message}`);
+    }
+    throw new Error("Failed to validate deployment: Unknown error");
   }
 }
 
-export { deployDevEnvironment };
+function getOutputValue(outputs: StackOutput[], key: string): string {
+  const output = outputs.find((o) => o.OutputKey === key);
+  if (!output?.OutputValue) {
+    throw new Error(`Required output '${key}' not found in stack outputs`);
+  }
+  return output.OutputValue;
+}
