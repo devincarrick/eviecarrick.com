@@ -11,7 +11,7 @@ interface ValidationResult {
 
 export async function deployDevEnvironment(): Promise<ValidationResult> {
   const client = new CloudFormationClient({ region: process.env.AWS_REGION });
-  const stackName = process.env.STACK_NAME || "InfrastructureStack";
+  const stackName = process.env.STACK_NAME || "PortfolioInfraStack";
 
   try {
     const { Stacks } = await client.send(

@@ -69,7 +69,7 @@ jobs:
         env:
           AWS_REGION: us-east-1
           NODE_ENV: production
-          STACK_NAME: ${{ steps.deploy.outputs.stack_name }}
+          STACK_NAME: "PortfolioInfraStack"
         run: |
           echo "Starting deployment validation..."
           echo "Using stack name: $STACK_NAME"
