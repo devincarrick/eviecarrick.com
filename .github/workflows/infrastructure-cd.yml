@@ -51,7 +51,9 @@ jobs:
           cache-dependency-path: infrastructure/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm install -g ts-node typescript @types/node
 
       - name: Deploy with CDK
         run: |
@@ -64,12 +66,13 @@ jobs:
         env:
           AWS_REGION: us-east-1
           NODE_ENV: production
+          TS_NODE_PROJECT: ./tsconfig.json
         run: |
           echo "Starting deployment validation..."
           npm run validate-deployment 2>&1 || {
             echo "Validation failed with exit code $?"
             echo "Error output:"
-            cat validation-error.log || true
+            cat /tmp/validation-error.log 2>/dev/null || true
             exit 1
           }
 

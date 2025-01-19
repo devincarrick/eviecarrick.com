@@ -16,11 +16,12 @@
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
-    "validate-deployment": "NODE_OPTIONS='--no-warnings --experimental-specifier-resolution=node' ts-node --esm scripts/validate-deployment.ts"
+    "validate-deployment": "NODE_OPTIONS='--no-warnings' ts-node --esm --experimental-specifier-resolution=node scripts/validate-deployment.ts"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.203.0",
     "@eslint/js": "^9.17.0",
+    "@types/aws-sdk": "^0.0.42",
     "@types/jest": "^29.5.14",
     "@types/node": "22.7.9",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
@@ -36,7 +37,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-sts": "^3.731.1",
-    "@types/aws-sdk": "^0.0.42",
     "aws-sdk": "^2.1692.0",
     "constructs": "^10.0.0",
     "dotenv": "^16.4.7"
