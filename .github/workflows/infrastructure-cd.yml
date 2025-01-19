@@ -41,7 +41,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -61,7 +61,15 @@ jobs:
             --require-approval never
 
       - name: Run post-deployment validation
-        run: npm run validate-deployment
+        env:
+          AWS_REGION: us-east-1
+          NODE_ENV: production
+        run: |
+          echo "Starting deployment validation..."
+          npm run validate-deployment || {
+            echo "Validation failed with exit code $?"
+            exit 1
+          }
 
       - name: Notify on failure
         if: failure()
