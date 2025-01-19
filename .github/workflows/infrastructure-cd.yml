@@ -56,8 +56,11 @@ jobs:
           npm install -g ts-node typescript @types/node
 
       - name: Deploy with CDK
+        id: deploy
         run: |
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
+          STACK_NAME="InfrastructureStack"
+          echo "stack_name=${STACK_NAME}" >> $GITHUB_OUTPUT
           npm run cdk deploy -- \
             --context stage=$STAGE \
             --require-approval never
@@ -66,9 +69,10 @@ jobs:
         env:
           AWS_REGION: us-east-1
           NODE_ENV: production
-          NODE_OPTIONS: "--no-warnings"
+          STACK_NAME: ${{ steps.deploy.outputs.stack_name }}
         run: |
           echo "Starting deployment validation..."
+          echo "Using stack name: $STACK_NAME"
           npm run validate-deployment || {
             echo "Validation failed with exit code $?"
             exit 1

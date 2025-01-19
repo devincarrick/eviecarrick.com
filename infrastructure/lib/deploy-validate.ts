@@ -1,12 +1,8 @@
 import {
   CloudFormationClient,
   DescribeStacksCommand,
+  Output,
 } from "@aws-sdk/client-cloudformation";
-
-interface StackOutput {
-  OutputKey?: string;
-  OutputValue?: string;
-}
 
 interface ValidationResult {
   bucketName: string;
@@ -15,7 +11,7 @@ interface ValidationResult {
 
 export async function deployDevEnvironment(): Promise<ValidationResult> {
   const client = new CloudFormationClient({ region: process.env.AWS_REGION });
-  const stackName = process.env.STACK_NAME || "evie-carrick-portfolio-dev";
+  const stackName = process.env.STACK_NAME || "InfrastructureStack";
 
   try {
     const { Stacks } = await client.send(
@@ -46,7 +42,7 @@ export async function deployDevEnvironment(): Promise<ValidationResult> {
   }
 }
 
-function getOutputValue(outputs: StackOutput[], key: string): string {
+function getOutputValue(outputs: Output[], key: string): string {
   const output = outputs.find((o) => o.OutputKey === key);
   if (!output?.OutputValue) {
     throw new Error(`Required output '${key}' not found in stack outputs`);
