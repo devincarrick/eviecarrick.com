@@ -31,94 +31,84 @@ async function deployDevEnvironment(stage: string = "dev") {
     await checkAwsCredentials();
 
     // Check if stack exists first
-    const { Stacks } = await cloudformation.describeStacks({
-      StackName: "PortfolioInfraStack",
-    });
+    try {
+      const { Stacks } = (await cloudformation.describeStacks({
+        StackName: "PortfolioInfraStack",
+      })) || { Stacks: [] };
 
-    if (!Stacks || Stacks.length === 0) {
-      throw new Error("Stack not found");
-    }
-
-    const stack = Stacks[0];
-    originalState.stackId = stack.StackId || "";
-
-    // Extract required outputs
-    const bucketName = stack.Outputs?.find(
-      (output) => output.OutputKey === "WebsiteBucketName"
-    )?.OutputValue;
-    const distributionDomain = stack.Outputs?.find(
-      (output) => output.OutputKey === "DistributionDomain"
-    )?.OutputValue;
-
-    if (!bucketName || !distributionDomain) {
-      throw new Error("Required stack outputs not found");
-    }
-
-    // Deploy CDK Stack with provided stage
-    console.log(`Deploying ${stage} environment...`);
-    execSync(
-      `cdk deploy PortfolioInfraStack --context stage=${stage} --require-approval never`,
-      { stdio: "inherit" }
-    );
-
-    // 3. Validate S3 Bucket
-    await validateS3Bucket(bucketName);
-
-    // 4. Validate CloudFront Distribution
-    await validateCloudFrontDistribution(distributionDomain);
-
-    // 5. Validate CloudWatch Dashboard
-    await validateCloudWatchDashboard();
-
-    console.log(
-      "Dev environment deployment and validation completed successfully!"
-    );
-
-    const deploymentDuration = (Date.now() - startTime) / 1000;
-    console.log(`Deployment completed in ${deploymentDuration} seconds`);
-
-    // Log deployment metrics
-    await cloudWatch.putMetricData({
-      Namespace: "Portfolio/Deployments",
-      MetricData: [
-        {
-          MetricName: "DeploymentDuration",
-          Value: deploymentDuration,
-          Unit: "Seconds",
-          Dimensions: [
-            {
-              Name: "Environment",
-              Value: "dev",
-            },
-          ],
-        },
-      ],
-    });
-
-    return { bucketName, distributionDomain };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Deployment validation failed:", errorMessage);
-
-    // Attempt rollback if needed
-    if (originalState.stackId) {
-      console.log("Attempting rollback...");
-      try {
-        await cloudformation.rollbackStack({
-          StackName: "PortfolioInfraStack",
-        });
-        console.log("Rollback completed");
-      } catch (rollbackError) {
-        console.error(
-          "Rollback failed:",
-          rollbackError instanceof Error
-            ? rollbackError.message
-            : String(rollbackError)
-        );
+      if (!Stacks || Stacks.length === 0) {
+        throw new Error("Stack not found");
       }
-    }
 
-    throw error; // Re-throw to be handled by the calling function
+      const stack = Stacks[0];
+      originalState.stackId = stack.StackId || "";
+
+      // Extract required outputs
+      const bucketName = stack.Outputs?.find(
+        (output) => output.OutputKey === "WebsiteBucketName"
+      )?.OutputValue;
+      const distributionDomain = stack.Outputs?.find(
+        (output) => output.OutputKey === "DistributionDomain"
+      )?.OutputValue;
+
+      if (!bucketName || !distributionDomain) {
+        throw new Error("Required stack outputs not found");
+      }
+
+      // Deploy CDK Stack with provided stage
+      console.log(`Deploying ${stage} environment...`);
+      execSync(
+        `cdk deploy PortfolioInfraStack --context stage=${stage} --require-approval never`,
+        { stdio: "inherit" }
+      );
+
+      // 3. Validate S3 Bucket
+      await validateS3Bucket(bucketName);
+
+      // 4. Validate CloudFront Distribution
+      await validateCloudFrontDistribution(distributionDomain);
+
+      // 5. Validate CloudWatch Dashboard
+      await validateCloudWatchDashboard();
+
+      console.log(
+        "Dev environment deployment and validation completed successfully!"
+      );
+
+      const deploymentDuration = (Date.now() - startTime) / 1000;
+      console.log(`Deployment completed in ${deploymentDuration} seconds`);
+
+      // Log deployment metrics
+      await cloudWatch.putMetricData({
+        Namespace: "Portfolio/Deployments",
+        MetricData: [
+          {
+            MetricName: "DeploymentDuration",
+            Value: deploymentDuration,
+            Unit: "Seconds",
+            Dimensions: [
+              {
+                Name: "Environment",
+                Value: "dev",
+              },
+            ],
+          },
+        ],
+      });
+
+      return { bucketName, distributionDomain };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Failed to validate stack: " + String(error));
+    }
+  } catch (error) {
+    console.error(
+      "Deployment failed:",
+      error instanceof Error ? error.message : String(error)
+    );
+    throw error;
   }
 }
 
