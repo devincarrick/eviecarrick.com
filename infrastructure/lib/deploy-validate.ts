@@ -4,10 +4,16 @@ import { S3 } from "@aws-sdk/client-s3";
 import { CloudFront } from "@aws-sdk/client-cloudfront";
 import { CloudWatch } from "@aws-sdk/client-cloudwatch";
 import { CloudWatchLogs } from "@aws-sdk/client-cloudwatch-logs";
+import { STS } from "@aws-sdk/client-sts";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-const config = { region: "us-east-1" };
+const config = {
+  region: "us-east-1",
+  maxAttempts: 3,
+  retryMode: "standard",
+};
+
 const s3 = new S3(config);
 const cloudFront = new CloudFront(config);
 const cloudWatch = new CloudWatch(config);
@@ -22,6 +28,9 @@ async function deployDevEnvironment(stage: string = "dev") {
   };
 
   try {
+    // Verify AWS credentials first
+    await checkAwsCredentials();
+
     // Check if stack exists first
     try {
       const { Stacks } = await cloudformation.describeStacks({
@@ -237,6 +246,21 @@ async function validateCloudWatchDashboard() {
   } else {
     console.log(
       "✓ No dashboard for dev environment (as expected per cost requirements)"
+    );
+  }
+}
+
+async function checkAwsCredentials(): Promise<void> {
+  try {
+    const response = await new STS(config).getCallerIdentity({});
+    if (!response.Account) {
+      throw new Error("AWS credentials not found");
+    }
+    console.log("✓ AWS credentials verified");
+  } catch (error) {
+    console.error("AWS credentials check failed:", error);
+    throw new Error(
+      "Failed to verify AWS credentials. Please ensure AWS credentials are properly configured."
     );
   }
 }
