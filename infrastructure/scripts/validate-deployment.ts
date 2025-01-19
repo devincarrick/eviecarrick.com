@@ -15,9 +15,16 @@ async function validateDeployment(): Promise<ValidationResult> {
   const nodeEnv = process.env.NODE_ENV || 'development';
   console.log(`Starting deployment validation in ${nodeEnv} environment...`);
   console.log(`AWS Region: ${region}`);
+  console.log('Attempting to deploy dev environment...');
 
   try {
-    const result = await deployDevEnvironment();
+    const result = await deployDevEnvironment().catch(err => {
+      const errorDetails = err instanceof Error ? err : JSON.stringify(err, null, 2);
+      console.error('Deploy error details:', errorDetails);
+      throw err;
+    });
+    
+    console.log('Deploy result:', JSON.stringify(result, null, 2));
     
     if (!result?.bucketName || !result?.distributionId) {
       throw new Error('Deployment validation failed: Missing required deployment outputs');
@@ -29,16 +36,17 @@ async function validateDeployment(): Promise<ValidationResult> {
       region
     };
   } catch (error) {
-    // Enhance error message with deployment context
     const errorMessage = error instanceof Error 
       ? error.message 
-      : 'Unknown deployment validation error';
+      : JSON.stringify(error, null, 2);
       
-    throw new Error(`Deployment validation failed: ${errorMessage}`);
+    console.error('Deployment validation error:', errorMessage);
+    throw error;
   }
 }
 
-async function main() {
+// IIFE to handle top-level await and ensure proper error handling
+(async () => {
   try {
     const validationResult = await validateDeployment();
     console.log('Deployment validation successful:', {
@@ -47,20 +55,10 @@ async function main() {
     });
     process.exit(0);
   } catch (error) {
-    console.error('ERROR:', error instanceof Error ? error.message : 'Unknown error occurred');
+    console.error('Validation failed:', error instanceof Error ? error.message : JSON.stringify(error, null, 2));
     if (error instanceof Error && error.stack) {
       console.error('Stack trace:', error.stack);
     }
-    process.exit(1);
-  }
-}
-
-// Use IIFE to handle top-level await
-(async () => {
-  try {
-    await main();
-  } catch (error) {
-    console.error('Fatal error in main execution:', error);
     process.exit(1);
   }
 })();
