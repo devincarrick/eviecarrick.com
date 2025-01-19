@@ -27,8 +27,8 @@ export async function deployDevEnvironment(): Promise<ValidationResult> {
       throw new Error("No outputs found in stack");
     }
 
-    const bucketName = getOutputValue(outputs, "WebsiteBucketName");
-    const distributionId = getOutputValue(outputs, "DistributionId");
+    const bucketName = getOutputValue(outputs, 'devBucketName');
+    const distributionId = getOutputValue(outputs, 'devDistributionId');
 
     return {
       bucketName,
