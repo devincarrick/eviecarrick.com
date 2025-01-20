@@ -119,6 +119,13 @@ jobs:
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
+          # Get CloudFront distribution ID from CloudFormation stack
+          STACK_NAME="PortfolioInfraStack-${STAGE}"
+          DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${STACK_NAME} \
+            --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue' \
+            --output text)
+
           echo "Cleaning S3 bucket..."
           aws s3 rm "s3://${BUCKET_NAME}" --recursive
 
@@ -135,11 +142,14 @@ jobs:
           echo "Verifying deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
 
-          echo "Invalidating CloudFront cache..."
-          DISTRIBUTION_ID="E2JPV9LHZF6OGL"
-          aws cloudfront create-invalidation \
-            --distribution-id ${DISTRIBUTION_ID} \
-            --paths "/*"
+          if [ ! -z "$DISTRIBUTION_ID" ]; then
+            echo "Invalidating CloudFront cache for distribution: ${DISTRIBUTION_ID}"
+            aws cloudfront create-invalidation \
+              --distribution-id ${DISTRIBUTION_ID} \
+              --paths "/*"
+          else
+            echo "Warning: Could not find CloudFront distribution ID"
+          fi
 
       - name: Deployment Summary
         run: |
