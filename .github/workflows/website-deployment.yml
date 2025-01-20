@@ -119,44 +119,27 @@ jobs:
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
-          echo "Deploying to S3..."
-          # First, delete existing files to ensure case changes are picked up
+          echo "Cleaning S3 bucket..."
           aws s3 rm "s3://${BUCKET_NAME}" --recursive
 
-          # Then sync with new files
+          echo "Waiting for delete operation to complete..."
+          sleep 5
+
+          echo "Deploying to S3..."
           aws s3 sync dist/ "s3://${BUCKET_NAME}" \
+            --delete \
             --cache-control "max-age=3600" \
-            --exclude ".DS_Store"
+            --exclude ".DS_Store" \
+            --exact-timestamps
 
           echo "Verifying deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
 
-      - name: Invalidate CloudFront
-        run: |
-          STAGE="${{ github.event.inputs.environment || 'dev' }}"
-          echo "Looking for distribution ID for stage: $STAGE"
-
-          # Updated query to match new output key format
-          DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
-            --stack-name "PortfolioInfraStack-${STAGE}" \
-            --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" \
-            --output text)
-
-          echo "Found Distribution ID: $DISTRIBUTION_ID"
-
-          if [ -z "$DISTRIBUTION_ID" ]; then
-            echo "Error: Distribution ID not found for stage ${STAGE}"
-            exit 1
-          fi
-
-          echo "Creating CloudFront invalidation for distribution: ${DISTRIBUTION_ID}"
-
-          if ! aws cloudfront create-invalidation \
-            --distribution-id "$DISTRIBUTION_ID" \
-            --paths "/*"; then
-            echo "Failed to create CloudFront invalidation"
-            exit 1
-          fi
+          echo "Invalidating CloudFront cache..."
+          DISTRIBUTION_ID="E2JPV9LHZF6OGL"
+          aws cloudfront create-invalidation \
+            --distribution-id ${DISTRIBUTION_ID} \
+            --paths "/*"
 
       - name: Deployment Summary
         run: |
