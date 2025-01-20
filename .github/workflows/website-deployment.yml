@@ -52,6 +52,13 @@ jobs:
       - name: Build website
         run: npm run build
 
+      - name: Debug build output
+        run: |
+          echo "Contents of dist directory:"
+          ls -la dist/
+          echo "Current working directory:"
+          pwd
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -84,6 +91,13 @@ jobs:
         with:
           name: website-build
           path: dist
+
+      - name: Debug downloaded artifact
+        run: |
+          echo "Contents of dist directory after download:"
+          ls -la dist/
+          echo "Current working directory:"
+          pwd
 
       - name: Deploy to S3
         run: |

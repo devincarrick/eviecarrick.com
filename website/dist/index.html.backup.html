@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evie Carrick | Travel & Outdoor Copywriter</title>
+    <link href="/dist/output.css" rel="stylesheet" />
+  </head>
+  <body class="font-sans text-[#060507] bg-white">
+    <header class="fixed top-0 w-full z-50">
+      <nav class="w-full px-4 py-8 bg-[#F7FCFD]/60 backdrop-blur-sm">
+        <div class="container mx-auto">
+          <div class="flex items-center justify-between">
+            <!-- Left side -->
+            <div class="flex items-center space-x-8">
+              <a
+                href="#work"
+                class="text-[#F541A6] hover:text-[#D93990] transition-colors"
+                >WORK</a
+              >
+            </div>
+
+            <!-- Center Logo -->
+            <a
+              href="./index.html"
+              class="absolute left-1/2 transform -translate-x-1/2"
+            >
+              <svg viewBox="0 0 100 50" class="w-80 h-40">
+                <text
+                  x="50%"
+                  y="50%"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  class="font-bold transition-all duration-300"
+                  fill="transparent"
+                  stroke="#F541A6"
+                  stroke-width="0.5"
+                  style="font-family: sans-serif"
+                  onmouseover="this.setAttribute('stroke', '#D93990')"
+                  onmouseout="this.setAttribute('stroke', '#F541A6')"
+                >
+                  EC
+                </text>
+              </svg>
+            </a>
+
+            <!-- Right side -->
+            <button id="menuBtn" class="md:hidden" aria-label="Toggle menu">
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                ></path>
+              </svg>
+            </button>
+            <nav class="hidden md:flex space-x-8">
+              <a
+                href="about.html"
+                class="text-[#F541A6] hover:text-[#D93990] transition-colors"
+                >ABOUT</a
+              >
+            </nav>
+          </div>
+          <!-- Mobile menu -->
+          <div id="mobileMenu" class="hidden md:hidden mt-4">
+            <nav class="flex flex-col space-y-4">
+              <a
+                href="#work"
+                class="text-[#F541A6] hover:text-[#D93990] transition-colors"
+                >WORK</a
+              >
+              <a
+                href="about.html"
+                class="text-[#F541A6] hover:text-[#D93990] transition-colors"
+                >ABOUT</a
+              >
+            </nav>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- # src/index.html (main content section) -->
+
+    <main class="relative min-h-screen">
+      <!-- Hero background -->
+      <div class="fixed inset-0 -z-10">
+        <!-- Placeholder image - replace src with your actual image -->
+        <img
+          src="../public/background-4.JPG"
+          alt="Scenic outdoor landscape"
+          class="w-full h-full object-cover"
+        />
+        <!-- Gradient overlay for text readability -->
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-white"
+        ></div>
+      </div>
+
+      <!-- Hero content -->
+      <div class="relative pt-32 px-4 md:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+          <!-- Hero heading -->
+          <div class="text-center mb-20">
+            <div class="relative">
+              <svg viewBox="0 0 1200 200" class="w-full max-w-5xl mx-auto">
+                <text
+                  x="50%"
+                  y="50%"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  class="text-9xl font-bold transition-all duration-300"
+                  fill="transparent"
+                  stroke="#F541A6"
+                  stroke-width="2"
+                  style="font-family: sans-serif"
+                  onmouseover="this.setAttribute('stroke', '#D93990')"
+                  onmouseout="this.setAttribute('stroke', '#F541A6')"
+                >
+                  EVIE CARRICK
+                </text>
+              </svg>
+              <p
+                class="absolute bottom-0 right-4 text-2xl text-[#F541A6] hover:text-[#D93990] transition-colors"
+              >
+                WRITER
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Work grid section -->
+      <div id="work" class="mt-32 grid gap-8 mb-20">
+        <!-- Editorial Work -->
+        <div class="bg-[#F7FCFD]/60 backdrop-blur-sm rounded-lg p-8">
+          <h2 class="text-2xl font-bold mb-6 text-[#F541A6] text-center">
+            EDITORIAL | SHAPING COMPELLING STORIES
+          </h2>
+          <!-- Updated grid with 3 columns -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Article Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+              <!-- Image Container with badges - only this is visible initially -->
+              <div
+                class="relative cursor-pointer group"
+                onclick="openModal('article1')"
+              >
+                <img
+                  src="../public/siargao-philippines-card.jpg"
+                  alt="Siargao Island"
+                  class="w-full h-[500px] object-cover"
+                />
+                <!-- Centered badges container -->
+                <div
+                  class="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center text-center p-4"
+                >
+                  <div
+                    class="text-[#F541A6] font-bold inline-block px-3 py-1 rounded mb-2 bg-[#F7FCFD]/60 backdrop-blur-sm"
+                  >
+                    TRAVEL + LEISURE
+                  </div>
+                  <div
+                    class="text-[#F541A6] font-bold inline-block px-3 py-1 rounded text-sm bg-[#F7FCFD]/60 backdrop-blur-sm"
+                  >
+                    EDITORIAL
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- New Card (article2) -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+              <div
+                class="relative cursor-pointer group"
+                onclick="openModal('article2')"
+              >
+                <img
+                  src="../public/placeholder-image.jpg"
+                  alt="Article Preview"
+                  class="w-full h-[500px] object-cover"
+                />
+                <!-- Centered badges container -->
+                <div
+                  class="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center text-center p-4"
+                >
+                  <div
+                    class="text-[#F541A6] font-bold inline-block px-3 py-1 rounded mb-2 bg-[#F7FCFD]/60 backdrop-blur-sm"
+                  >
+                    TRAVEL + LEISURE
+                  </div>
+                  <div
+                    class="text-[#F541A6] font-bold inline-block px-3 py-1 rounded text-sm bg-[#F7FCFD]/60 backdrop-blur-sm"
+                  >
+                    EDITORIAL
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editorial Quote -->
+        <div class="mt-8 p-6 flex justify-center">
+          <div class="max-w-2xl">
+            <p class="text-2xl font-bold text-[#F541A6] text-center">
+              I started travel writing to fund a multi-year adventure around the
+              globe. Now, over 55 countries later, I write and edit for some of
+              the travel industry's most esteemed print and digital publications
+              and was tapped to write a series of travel books for Simon &
+              Schuster.
+            </p>
+          </div>
+        </div>
+
+        <!-- Commercial Work -->
+        <div class="bg-[#F7FCFD]/60 backdrop-blur-sm rounded-lg p-8">
+          <h2 class="text-2xl font-bold mb-6 text-[#F541A6] text-center">
+            COPYWRITING | CONTENT THAT RESONATES
+          </h2>
+          <div class="grid gap-6">
+            <!-- Grid items will be added here -->
+            <div class="bg-white rounded shadow p-6">
+              <h3 class="font-bold mb-2 text-[#060507]">Project Title</h3>
+              <p class="text-[#060507]/70 mb-4">
+                Brief description of the project
+              </p>
+              <a
+                href="#"
+                class="text-[#F541A6] hover:text-[#D93990] transition-colors"
+                >View Project →</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Commercial Quote -->
+        <div class="mt-8 p-6 flex justify-center">
+          <div class="max-w-2xl">
+            <p class="text-2xl font-bold text-[#F541A6] text-center">
+              I lean on my background in journalism and marketing to create
+              authentic content that resonates and engages. I start by working
+              to understand the target audience and brand vision, then craft
+              stories and text that leave a lasting impression. My experience
+              includes writing blogs, newsletters, social posts, and press
+              releases, as well as website and UX copy.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-[#3ED4AF]">
+      <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <p class="text-white">&copy; 2024 Evie Carrick</p>
+          <div class="flex space-x-6 mt-4 md:mt-0">
+            <a
+              href="#"
+              class="text-white hover:text-[#F541A6] transition-colors"
+              >LinkedIn</a
+            >
+            <a
+              href="#"
+              class="text-white hover:text-[#F541A6] transition-colors"
+              >Twitter</a
+            >
+            <a
+              href="#"
+              class="text-white hover:text-[#F541A6] transition-colors"
+              >Instagram</a
+            >
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal Template -->
+    <div id="article1Modal" class="fixed inset-0 bg-black/80 z-50 hidden">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div
+          class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto relative"
+        >
+          <!-- Close button -->
+          <button
+            onclick="closeModal('article1')"
+            class="absolute top-4 right-4 text-[#F541A6] hover:text-[#D93990] transition-colors"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <!-- Modal content -->
+          <div class="p-6">
+            <img
+              src="../public/siargao-philippines-modal.jpeg"
+              alt="Siargao Island"
+              class="w-full h-[400px] object-cover rounded-lg mb-6 mt-8"
+            />
+            <h2 class="text-2xl font-bold mb-4">
+              I've Traveled to More Than 50 Countries but Something About This
+              Surf Island in the Philippines Hooked Me
+            </h2>
+            <div class="prose max-w-none mb-6">
+              <p>Siargao must be what Bali felt like 50 years ago.</p>
+            </div>
+            <div class="prose max-w-none mb-6">
+              <p>
+                As I sit down to write about Siargao, a place that feels like
+                the last remaining paradise, I grapple with my profession and
+                the assignment at hand. My job is to share the joy of traveling
+                and help people discover new places and experience new cultures,
+                and today, my assignment is to write about my trip to Siargao, a
+                tiny island in the Philippines. Yet, sharing this paradise with
+                the world fills me with unease; I can't shake the worry that my
+                words might unwittingly contribute to its erosion by motivating
+                tourism and development.
+              </p>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+              <a
+                href="https://www.travelandleisure.com/siargao-philippines-travel-guide-8728773"
+                target="_blank"
+                class="inline-block bg-[#F541A6] text-white px-6 py-2 rounded hover:bg-[#D93990] transition-colors text-center"
+              >
+                Read Full Article
+              </a>
+              <a
+                href="https://www.travelandleisure.com/author/evie-carrick"
+                target="_blank"
+                class="inline-block border border-[#F541A6] text-[#F541A6] px-6 py-2 rounded hover:bg-[#F541A6] hover:text-white transition-colors text-center"
+              >
+                View All Work
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Modal (article2) -->
+    <div id="article2Modal" class="fixed inset-0 bg-black/80 z-50 hidden">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div
+          class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto relative"
+        >
+          <!-- Close button -->
+          <button
+            onclick="closeModal('article2')"
+            class="absolute top-4 right-4 text-[#F541A6] hover:text-[#D93990] transition-colors"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <!-- Modal content -->
+          <div class="p-6">
+            <img
+              src="../public/placeholder-image-modal.jpg"
+              alt="Article Image"
+              class="w-full h-[400px] object-cover rounded-lg mb-6 mt-8"
+            />
+            <h2 class="text-2xl font-bold mb-4">
+              Sample Article Title: Your Next Adventure Awaits
+            </h2>
+            <div class="prose max-w-none mb-6">
+              <p>Opening hook or subtitle for the article.</p>
+            </div>
+            <div class="prose max-w-none mb-6">
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+              </p>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+              <a
+                href="#"
+                target="_blank"
+                class="inline-block bg-[#F541A6] text-white px-6 py-2 rounded hover:bg-[#D93990] transition-colors text-center"
+              >
+                Read Full Article
+              </a>
+              <a
+                href="#"
+                target="_blank"
+                class="inline-block border border-[#F541A6] text-[#F541A6] px-6 py-2 rounded hover:bg-[#F541A6] hover:text-white transition-colors text-center"
+              >
+                View All Work
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script defer src="../src/js/main.js"></script>
+  </body>
+</html>
