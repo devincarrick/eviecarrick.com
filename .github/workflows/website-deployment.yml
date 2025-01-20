@@ -120,27 +120,13 @@ jobs:
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
           echo "Deploying to S3..."
+          # First, delete existing files to ensure case changes are picked up
+          aws s3 rm "s3://${BUCKET_NAME}" --recursive
+
+          # Then sync with new files
           aws s3 sync dist/ "s3://${BUCKET_NAME}" \
-            --delete \
             --cache-control "max-age=3600" \
             --exclude ".DS_Store"
-
-          echo "Setting content types..."
-          # Set content types for JS files
-          find dist/js -type f -name "*.js" | while read file; do
-            key=${file#dist/}
-            aws s3 cp "s3://${BUCKET_NAME}/${key}" "s3://${BUCKET_NAME}/${key}" \
-              --content-type "application/javascript" \
-              --metadata-directive REPLACE
-          done
-
-          # Set content types for HTML files
-          find dist -type f -name "*.html" | while read file; do
-            key=${file#dist/}
-            aws s3 cp "s3://${BUCKET_NAME}/${key}" "s3://${BUCKET_NAME}/${key}" \
-              --content-type "text/html" \
-              --metadata-directive REPLACE
-          done
 
           echo "Verifying deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
