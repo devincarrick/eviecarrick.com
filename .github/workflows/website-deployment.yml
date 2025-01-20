@@ -104,35 +104,24 @@ jobs:
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
-          echo "Creating necessary directories..."
-          mkdir -p website/dist/js
-          mkdir -p website/dist/components
-
-          echo "Copying source files..."
-          # Copy components
-          cp -r website/src/components/* website/dist/components/
-
-          # Copy JavaScript files
-          cp -r website/src/js/* website/dist/js/
-
           echo "Deploying to S3..."
-          aws s3 sync website/dist/ "s3://${BUCKET_NAME}" \
+          aws s3 sync dist/ "s3://${BUCKET_NAME}" \
             --delete \
             --cache-control "max-age=3600" \
             --exclude ".DS_Store"
 
           echo "Setting content types..."
           # Set content types for JS files
-          find website/dist/js -type f -name "*.js" | while read file; do
-            key=${file#website/dist/}
+          find dist/js -type f -name "*.js" | while read file; do
+            key=${file#dist/}
             aws s3 cp "s3://${BUCKET_NAME}/${key}" "s3://${BUCKET_NAME}/${key}" \
               --content-type "application/javascript" \
               --metadata-directive REPLACE
           done
 
           # Set content types for HTML files
-          find website/dist -type f -name "*.html" | while read file; do
-            key=${file#website/dist/}
+          find dist -type f -name "*.html" | while read file; do
+            key=${file#dist/}
             aws s3 cp "s3://${BUCKET_NAME}/${key}" "s3://${BUCKET_NAME}/${key}" \
               --content-type "text/html" \
               --metadata-directive REPLACE
