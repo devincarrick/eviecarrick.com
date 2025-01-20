@@ -17,11 +17,13 @@ export class PortfolioInfraStack extends cdk.Stack {
     super(scope, id, props);
 
     // Environment validation
-    const validStages = ['dev', 'staging', 'prod'];
+    const validStages = ["dev", "staging", "prod"];
     const stage = this.node.tryGetContext("stage") || "dev";
-    
+
     if (!validStages.includes(stage)) {
-      throw new Error(`Invalid stage: ${stage}. Must be one of: ${validStages.join(', ')}`);
+      throw new Error(
+        `Invalid stage: ${stage}. Must be one of: ${validStages.join(", ")}`
+      );
     }
 
     // Environment-specific configurations
@@ -50,21 +52,20 @@ export class PortfolioInfraStack extends cdk.Stack {
       bucketName: `portfolio-${stage}-${this.account}`.toLowerCase(),
       // Block all public access
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      
+
       // Cost optimization configurations
       removalPolicy: config.removalPolicy,
       autoDeleteObjects: config.autoDeleteObjects,
-      
+
       // CORS configuration
-      cors: [{
-        allowedHeaders: ['*'],
-        allowedMethods: [
-          s3.HttpMethods.GET,
-          s3.HttpMethods.HEAD,
-        ],
-        allowedOrigins: ['*'],
-        maxAge: 3000,
-      }],
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.HEAD],
+          allowedOrigins: ["*"],
+          maxAge: 3000,
+        },
+      ],
 
       // Security configurations
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -75,89 +76,104 @@ export class PortfolioInfraStack extends cdk.Stack {
     websiteBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.DENY,
-        actions: ['s3:*'],
+        actions: ["s3:*"],
         resources: [websiteBucket.bucketArn, `${websiteBucket.bucketArn}/*`],
         principals: [new iam.AnyPrincipal()],
         conditions: {
           Bool: {
-            'aws:SecureTransport': 'false',
+            "aws:SecureTransport": "false",
           },
         },
       })
     );
 
     // Create security headers policy
-    const securityHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, `SecurityHeadersPolicy-${stage}`, {
-      responseHeadersPolicyName: `SecurityHeadersPolicy-${stage}`,
-      securityHeadersBehavior: {
-        contentSecurityPolicy: {
-          override: true,
-          contentSecurityPolicy: "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data: https:;"
+    const securityHeadersPolicy = new cloudfront.ResponseHeadersPolicy(
+      this,
+      `SecurityHeadersPolicy-${stage}`,
+      {
+        responseHeadersPolicyName: `SecurityHeadersPolicy-${stage}`,
+        securityHeadersBehavior: {
+          contentSecurityPolicy: {
+            override: true,
+            contentSecurityPolicy:
+              "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data: https:;",
+          },
+          strictTransportSecurity: {
+            override: true,
+            accessControlMaxAge: cdk.Duration.days(2 * 365),
+            includeSubdomains: true,
+            preload: true,
+          },
+          contentTypeOptions: {
+            override: true,
+          },
+          frameOptions: {
+            override: true,
+            frameOption: cloudfront.HeadersFrameOption.DENY,
+          },
+          xssProtection: {
+            override: true,
+            protection: true,
+            modeBlock: true,
+          },
+          referrerPolicy: {
+            override: true,
+            referrerPolicy:
+              cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+          },
         },
-        strictTransportSecurity: {
-          override: true,
-          accessControlMaxAge: cdk.Duration.days(2 * 365),
-          includeSubdomains: true,
-          preload: true
+        customHeadersBehavior: {
+          customHeaders: [
+            {
+              header: "Permissions-Policy",
+              value: "camera=(), microphone=(), geolocation=()",
+              override: true,
+            },
+          ],
         },
-        contentTypeOptions: {
-          override: true
-        },
-        frameOptions: {
-          override: true,
-          frameOption: cloudfront.HeadersFrameOption.DENY
-        },
-        xssProtection: {
-          override: true,
-          protection: true,
-          modeBlock: true
-        },
-        referrerPolicy: {
-          override: true,
-          referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN
-        }
-      },
-      customHeadersBehavior: {
-        customHeaders: [
-          {
-            header: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-            override: true
-          }
-        ]
       }
-    });
+    );
 
     // Create CloudFront distribution
-    const distribution = new cloudfront.Distribution(this, `Distribution-${stage}`, {
-      defaultBehavior: {
-        origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
-        compress: true,
-        responseHeadersPolicy: securityHeadersPolicy
-      },
-      defaultRootObject: 'index.html',
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 404,
-          responsePagePath: '/error.html',
-          ttl: cdk.Duration.hours(1),
+    const distribution = new cloudfront.Distribution(
+      this,
+      `Distribution-${stage}`,
+      {
+        defaultBehavior: {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+          compress: true,
+          responseHeadersPolicy: securityHeadersPolicy,
         },
-      ],
-      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-      minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
-      enableLogging: config.enableDetailedMonitoring,
-      logBucket: config.enableDetailedMonitoring ? new s3.Bucket(this, `LogBucket-${stage}`, {
-        removalPolicy: config.removalPolicy,
-        autoDeleteObjects: config.autoDeleteObjects,
-        lifecycleRules: [{
-          expiration: cdk.Duration.days(7),
-        }],
-      }) : undefined,
-    });
+        defaultRootObject: "index.html",
+        errorResponses: [
+          {
+            httpStatus: 404,
+            responseHttpStatus: 404,
+            responsePagePath: "/error.html",
+            ttl: cdk.Duration.hours(1),
+          },
+        ],
+        priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+        minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+        enableLogging: config.enableDetailedMonitoring,
+        logBucket: config.enableDetailedMonitoring
+          ? new s3.Bucket(this, `LogBucket-${stage}`, {
+              removalPolicy: config.removalPolicy,
+              autoDeleteObjects: config.autoDeleteObjects,
+              lifecycleRules: [
+                {
+                  expiration: cdk.Duration.days(7),
+                },
+              ],
+            })
+          : undefined,
+      }
+    );
 
     // Add CloudFront request monitoring only when detailed monitoring is enabled
     if (config.enableDetailedMonitoring) {
@@ -165,16 +181,17 @@ export class PortfolioInfraStack extends cdk.Stack {
         metric: new cloudwatch.Metric({
           namespace: "AWS/CloudFront",
           metricName: "Requests",
-          dimensionsMap: { 
+          dimensionsMap: {
             DistributionId: distribution.distributionId,
-            Region: 'Global'
+            Region: "Global",
           },
           period: cdk.Duration.hours(24),
           statistic: "Sum",
         }),
         threshold: stage === "prod" ? 1000000 : 100000,
         evaluationPeriods: 1,
-        comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        comparisonOperator:
+          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
         alarmDescription: `High number of CloudFront requests in ${stage} environment`,
       });
     }
@@ -195,14 +212,16 @@ export class PortfolioInfraStack extends cdk.Stack {
     });
 
     // Stack outputs
-    new cdk.CfnOutput(this, `${stage}DistributionId`, {
+    new cdk.CfnOutput(this, "DistributionId", {
       value: distribution.distributionId,
-      description: `${stage} CloudFront Distribution ID`,
+      description: `CloudFront Distribution ID for ${stage} environment`,
+      exportName: `DistributionId-${stage}`,
     });
 
-    new cdk.CfnOutput(this, `${stage}BucketName`, {
+    new cdk.CfnOutput(this, "BucketName", {
       value: websiteBucket.bucketName,
-      description: `${stage} S3 Bucket Name`,
+      description: `S3 Bucket Name for ${stage} environment`,
+      exportName: `BucketName-${stage}`,
     });
   }
 }
