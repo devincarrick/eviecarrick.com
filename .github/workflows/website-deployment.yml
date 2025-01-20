@@ -133,13 +133,16 @@ jobs:
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
-          # Set proper content types
+          # Set proper content type for CSS
           aws s3 cp s3://${BUCKET_NAME}/output.css s3://${BUCKET_NAME}/output.css --content-type "text/css" --metadata-directive REPLACE
-          aws s3 cp s3://${BUCKET_NAME}/js/main.js s3://${BUCKET_NAME}/js/main.js --content-type "application/javascript" --metadata-directive REPLACE
 
-          # Verify permissions
-          aws s3api get-object-acl --bucket ${BUCKET_NAME} --key output.css
-          aws s3api get-object-acl --bucket ${BUCKET_NAME} --key js/main.js
+          # Only set JS file permissions if file exists
+          if aws s3 ls "s3://${BUCKET_NAME}/js/main.js" &> /dev/null; then
+            aws s3 cp s3://${BUCKET_NAME}/js/main.js s3://${BUCKET_NAME}/js/main.js --content-type "application/javascript" --metadata-directive REPLACE
+            aws s3api get-object-acl --bucket ${BUCKET_NAME} --key js/main.js
+          else
+            echo "Warning: js/main.js not found in bucket"
+          fi
 
       - name: Verify S3 deployment
         run: |
