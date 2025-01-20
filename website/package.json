@@ -5,7 +5,7 @@
     "dev": "concurrently \"tailwindcss -i ./src/input.css -o ./dist/output.css --watch\" \"live-server . --port=3000 --open=/src/index.html\"",
     "build": "npm run build:css && npm run copy:files",
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
-    "copy:files": "mkdir -p dist/js dist/components && cp -v src/js/main.js dist/js/ && cp -v src/components/* dist/components/ && cp -v src/*.html dist/ && cp -r public/* dist/ 2>/dev/null || true",
+    "copy:files": "mkdir -p dist/js dist/components && cp -rv src/js/* dist/js/ && cp -rv src/components/* dist/components/ && cp -rv src/*.html dist/ && cp -rv public/* dist/",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "devDependencies": {

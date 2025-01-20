@@ -96,8 +96,7 @@ export class PortfolioInfraStack extends cdk.Stack {
           headers['x-frame-options'] = { value: 'DENY' };
           headers['x-xss-protection'] = { value: '1; mode=block' };
           headers['referrer-policy'] = { value: 'strict-origin-when-cross-origin' };
-          // Simplified permissions policy
-          headers['permissions-policy'] = { value: 'camera=(), microphone=()' };
+          headers['permissions-policy'] = { value: 'geolocation=(), camera=(), microphone=()' };
           
           return response;
         }
