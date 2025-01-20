@@ -4,7 +4,7 @@ import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as cf from "aws-cdk-lib/aws-cloudfront";
 import { Construct } from "constructs";
 
 interface EnvironmentConfig {
@@ -82,8 +82,11 @@ export class PortfolioInfraStack extends cdk.Stack {
     );
 
     // Create security headers function
-    const securityHeadersFunction = new cf.Function(this, `SecurityHeadersFunction-${stage}`, {
-      code: cf.FunctionCode.fromInline(`
+    const securityHeadersFunction = new cf.Function(
+      this,
+      `SecurityHeadersFunction-${stage}`,
+      {
+        code: cf.FunctionCode.fromInline(`
         function handler(event) {
           var response = event.response;
           var headers = response.headers;
@@ -93,24 +96,32 @@ export class PortfolioInfraStack extends cdk.Stack {
           headers['x-frame-options'] = { value: 'DENY' };
           headers['x-xss-protection'] = { value: '1; mode=block' };
           headers['referrer-policy'] = { value: 'strict-origin-when-cross-origin' };
-          headers['permissions-policy'] = { value: 'camera=(), microphone=(), geolocation=()' };
+          // Updated permissions policy to remove unsupported features
+          headers['permissions-policy'] = { 
+            value: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()'
+          };
           
           return response;
         }
       `),
-    });
+      }
+    );
 
     // Create cache policy
-    const cachePolicy = new cloudfront.CachePolicy(this, `CachePolicy-${stage}`, {
-      defaultTtl: cdk.Duration.days(1),
-      minTtl: cdk.Duration.minutes(1),
-      maxTtl: cdk.Duration.days(365),
-      enableAcceptEncodingGzip: true,
-      enableAcceptEncodingBrotli: true,
-      headerBehavior: cloudfront.CacheHeaderBehavior.allowList('Accept'),
-      queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
-      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
-    });
+    const cachePolicy = new cloudfront.CachePolicy(
+      this,
+      `CachePolicy-${stage}`,
+      {
+        defaultTtl: cdk.Duration.days(1),
+        minTtl: cdk.Duration.minutes(1),
+        maxTtl: cdk.Duration.days(365),
+        enableAcceptEncodingGzip: true,
+        enableAcceptEncodingBrotli: true,
+        headerBehavior: cloudfront.CacheHeaderBehavior.allowList("Accept"),
+        queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+        cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+      }
+    );
 
     // Create CloudFront distribution
     const distribution = new cloudfront.Distribution(
@@ -119,22 +130,31 @@ export class PortfolioInfraStack extends cdk.Stack {
       {
         defaultBehavior: {
           origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
           compress: true,
-          functionAssociations: [{
-            function: securityHeadersFunction,
-            eventType: cf.FunctionEventType.VIEWER_RESPONSE
-          }],
+          functionAssociations: [
+            {
+              function: securityHeadersFunction,
+              eventType: cf.FunctionEventType.VIEWER_RESPONSE,
+            },
+          ],
         },
         defaultRootObject: "index.html",
         errorResponses: [
           {
+            httpStatus: 403,
+            responseHttpStatus: 200,
+            responsePagePath: "/index.html",
+            ttl: cdk.Duration.minutes(5),
+          },
+          {
             httpStatus: 404,
             responseHttpStatus: 200,
             responsePagePath: "/index.html",
-            ttl: cdk.Duration.hours(1),
+            ttl: cdk.Duration.minutes(5),
           },
         ],
         priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
@@ -161,44 +181,44 @@ export class PortfolioInfraStack extends cdk.Stack {
 
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
-        title: 'CloudFront Requests',
+        title: "CloudFront Requests",
         left: [
           new cloudwatch.Metric({
-            namespace: 'AWS/CloudFront',
-            metricName: 'Requests',
+            namespace: "AWS/CloudFront",
+            metricName: "Requests",
             dimensionsMap: {
               DistributionId: distribution.distributionId,
-              Region: 'Global'
+              Region: "Global",
             },
-            statistic: 'Sum',
-            period: cdk.Duration.minutes(5)
-          })
-        ]
+            statistic: "Sum",
+            period: cdk.Duration.minutes(5),
+          }),
+        ],
       }),
       new cloudwatch.GraphWidget({
-        title: 'CloudFront Error Rate',
+        title: "CloudFront Error Rate",
         left: [
           new cloudwatch.Metric({
-            namespace: 'AWS/CloudFront',
-            metricName: '4xxErrorRate',
+            namespace: "AWS/CloudFront",
+            metricName: "4xxErrorRate",
             dimensionsMap: {
               DistributionId: distribution.distributionId,
-              Region: 'Global'
+              Region: "Global",
             },
-            statistic: 'Average',
-            period: cdk.Duration.minutes(5)
+            statistic: "Average",
+            period: cdk.Duration.minutes(5),
           }),
           new cloudwatch.Metric({
-            namespace: 'AWS/CloudFront',
-            metricName: '5xxErrorRate',
+            namespace: "AWS/CloudFront",
+            metricName: "5xxErrorRate",
             dimensionsMap: {
               DistributionId: distribution.distributionId,
-              Region: 'Global'
+              Region: "Global",
             },
-            statistic: 'Average',
-            period: cdk.Duration.minutes(5)
-          })
-        ]
+            statistic: "Average",
+            period: cdk.Duration.minutes(5),
+          }),
+        ],
       })
     );
 
@@ -259,7 +279,7 @@ export class PortfolioInfraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "DashboardURL", {
       value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=${dashboard.dashboardName}`,
-      description: 'URL for the CloudWatch Dashboard',
+      description: "URL for the CloudWatch Dashboard",
     });
   }
 }

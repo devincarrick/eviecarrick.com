@@ -3,10 +3,15 @@ import {
   DescribeStacksCommand,
   Output,
 } from "@aws-sdk/client-cloudformation";
+import {
+  CloudFrontClient,
+  GetDistributionCommand,
+} from "@aws-sdk/client-cloudfront";
 
-interface ValidationResult {
+export interface ValidationResult {
   bucketName: string;
   distributionId: string;
+  distributionDomain: string;
 }
 
 export async function deployDevEnvironment(
@@ -34,9 +39,15 @@ export async function deployDevEnvironment(
     const bucketName = getOutputValue(outputs, "BucketName");
     const distributionId = getOutputValue(outputs, "DistributionId");
 
+    const cloudfront = new CloudFrontClient({ region: process.env.AWS_REGION });
+    const distribution = await cloudfront.send(
+      new GetDistributionCommand({ Id: distributionId })
+    );
+
     return {
       bucketName,
       distributionId,
+      distributionDomain: distribution.Distribution?.DomainName || "",
     };
   } catch (error) {
     if (error instanceof Error) {
