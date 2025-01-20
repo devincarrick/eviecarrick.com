@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "concurrently \"tailwindcss -i ./src/input.css -o ./dist/output.css --watch\" \"live-server . --port=3000 --open=/src/index.html\"",
-    "build": "npm run build:css && npm run copy:html",
+    "build": "npm run build:css && npm run copy:files",
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
-    "copy:html": "cp src/*.html dist/ && cp -r public/* dist/ 2>/dev/null || true",
+    "copy:files": "mkdir -p dist/js && cp src/js/main.js dist/js/ && cp src/*.html dist/ && cp -r public/* dist/ 2>/dev/null || true",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "devDependencies": {
