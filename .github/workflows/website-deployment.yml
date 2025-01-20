@@ -99,84 +99,47 @@ jobs:
           echo "Current working directory:"
           pwd
 
-      - name: Deploy to S3
+      - name: Deploy website files
         run: |
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
-          echo "Deploying static assets to S3 bucket: ${BUCKET_NAME}"
+          echo "Creating necessary directories..."
+          mkdir -p website/dist/js
+          mkdir -p website/dist/components
 
-          # Deploy static assets with long cache duration
-          if ! aws s3 sync dist "s3://${BUCKET_NAME}" \
+          echo "Copying source files..."
+          # Copy components
+          cp -r website/src/components/* website/dist/components/
+
+          # Copy JavaScript files
+          cp -r website/src/js/* website/dist/js/
+
+          echo "Deploying to S3..."
+          aws s3 sync website/dist/ "s3://${BUCKET_NAME}" \
             --delete \
-            --cache-control "max-age=31536000,public" \
-            --exclude "*.html" \
-            --exclude "*.json"; then
-            echo "Failed to sync static assets to S3"
-            exit 1
-          fi
+            --cache-control "max-age=3600" \
+            --exclude ".DS_Store"
 
-          echo "Deploying HTML and JSON files with no-cache directive"
+          echo "Setting content types..."
+          # Set content types for JS files
+          find website/dist/js -type f -name "*.js" | while read file; do
+            key=${file#website/dist/}
+            aws s3 cp "s3://${BUCKET_NAME}/${key}" "s3://${BUCKET_NAME}/${key}" \
+              --content-type "application/javascript" \
+              --metadata-directive REPLACE
+          done
 
-          # Deploy HTML and JSON files with different cache settings
-          if ! aws s3 sync dist "s3://${BUCKET_NAME}" \
-            --delete \
-            --cache-control "no-cache" \
-            --include "*.html" \
-            --include "*.json"; then
-            echo "Failed to sync HTML/JSON files to S3"
-            exit 1
-          fi
+          # Set content types for HTML files
+          find website/dist -type f -name "*.html" | while read file; do
+            key=${file#website/dist/}
+            aws s3 cp "s3://${BUCKET_NAME}/${key}" "s3://${BUCKET_NAME}/${key}" \
+              --content-type "text/html" \
+              --metadata-directive REPLACE
+          done
 
-      - name: Set S3 file permissions
-        run: |
-          STAGE="${{ github.event.inputs.environment || 'dev' }}"
-          BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
-
-          # Set proper content type for CSS
-          aws s3 cp s3://${BUCKET_NAME}/output.css s3://${BUCKET_NAME}/output.css --content-type "text/css" --metadata-directive REPLACE
-
-          # Only set JS file permissions if file exists
-          if aws s3 ls "s3://${BUCKET_NAME}/js/main.js" &> /dev/null; then
-            aws s3 cp s3://${BUCKET_NAME}/js/main.js s3://${BUCKET_NAME}/js/main.js --content-type "application/javascript" --metadata-directive REPLACE
-            aws s3api get-object-acl --bucket ${BUCKET_NAME} --key js/main.js
-          else
-            echo "Warning: js/main.js not found in bucket"
-          fi
-
-      - name: Verify S3 deployment
-        run: |
-          STAGE="${{ github.event.inputs.environment || 'dev' }}"
-          BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
-
-          echo "Verifying deployment to bucket: ${BUCKET_NAME}"
-
-          # Verify files were uploaded
-          if ! aws s3 ls "s3://${BUCKET_NAME}" --recursive --summarize; then
-            echo "Failed to verify S3 deployment"
-            exit 1
-          fi
-
-      - name: Verify file structure
-        run: |
-          STAGE="${{ github.event.inputs.environment || 'dev' }}"
-          BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
-
-          echo "Checking S3 bucket contents..."
+          echo "Verifying deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
-
-          echo "Checking for js/main.js specifically..."
-          if aws s3 ls "s3://${BUCKET_NAME}/js/main.js"; then
-            echo "main.js exists"
-            # Verify content type
-            aws s3api head-object --bucket ${BUCKET_NAME} --key js/main.js
-          else
-            echo "main.js not found"
-            # Create directory and copy file if missing
-            mkdir -p website/dist/js
-            cp website/src/js/main.js website/dist/js/
-            aws s3 cp website/dist/js/main.js "s3://${BUCKET_NAME}/js/main.js" --content-type "application/javascript"
-          fi
 
       - name: Invalidate CloudFront
         run: |
