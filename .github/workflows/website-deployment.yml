@@ -157,6 +157,27 @@ jobs:
             exit 1
           fi
 
+      - name: Verify file structure
+        run: |
+          STAGE="${{ github.event.inputs.environment || 'dev' }}"
+          BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
+
+          echo "Checking S3 bucket contents..."
+          aws s3 ls "s3://${BUCKET_NAME}" --recursive
+
+          echo "Checking for js/main.js specifically..."
+          if aws s3 ls "s3://${BUCKET_NAME}/js/main.js"; then
+            echo "main.js exists"
+            # Verify content type
+            aws s3api head-object --bucket ${BUCKET_NAME} --key js/main.js
+          else
+            echo "main.js not found"
+            # Create directory and copy file if missing
+            mkdir -p website/dist/js
+            cp website/src/js/main.js website/dist/js/
+            aws s3 cp website/dist/js/main.js "s3://${BUCKET_NAME}/js/main.js" --content-type "application/javascript"
+          fi
+
       - name: Invalidate CloudFront
         run: |
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
