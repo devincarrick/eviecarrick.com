@@ -4,6 +4,7 @@ import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import { Construct } from "constructs";
 
 interface EnvironmentConfig {
@@ -50,14 +51,9 @@ export class PortfolioInfraStack extends cdk.Stack {
     // Create S3 bucket with blocked public access
     const websiteBucket = new s3.Bucket(this, `WebsiteBucket-${stage}`, {
       bucketName: `portfolio-${stage}-${this.account}`.toLowerCase(),
-      // Block all public access
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-
-      // Cost optimization configurations
       removalPolicy: config.removalPolicy,
       autoDeleteObjects: config.autoDeleteObjects,
-
-      // CORS configuration
       cors: [
         {
           allowedHeaders: ["*"],
@@ -66,8 +62,6 @@ export class PortfolioInfraStack extends cdk.Stack {
           maxAge: 3000,
         },
       ],
-
-      // Security configurations
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
     });
@@ -87,53 +81,36 @@ export class PortfolioInfraStack extends cdk.Stack {
       })
     );
 
-    // Create security headers policy
-    const securityHeadersPolicy = new cloudfront.ResponseHeadersPolicy(
-      this,
-      `SecurityHeadersPolicy-${stage}`,
-      {
-        responseHeadersPolicyName: `SecurityHeadersPolicy-${stage}`,
-        securityHeadersBehavior: {
-          contentSecurityPolicy: {
-            override: true,
-            contentSecurityPolicy:
-              "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data: https:;",
-          },
-          strictTransportSecurity: {
-            override: true,
-            accessControlMaxAge: cdk.Duration.days(2 * 365),
-            includeSubdomains: true,
-            preload: true,
-          },
-          contentTypeOptions: {
-            override: true,
-          },
-          frameOptions: {
-            override: true,
-            frameOption: cloudfront.HeadersFrameOption.DENY,
-          },
-          xssProtection: {
-            override: true,
-            protection: true,
-            modeBlock: true,
-          },
-          referrerPolicy: {
-            override: true,
-            referrerPolicy:
-              cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
-          },
-        },
-        customHeadersBehavior: {
-          customHeaders: [
-            {
-              header: "Permissions-Policy",
-              value: "camera=(), microphone=(), geolocation=()",
-              override: true,
-            },
-          ],
-        },
-      }
-    );
+    // Create security headers function
+    const securityHeadersFunction = new cf.Function(this, `SecurityHeadersFunction-${stage}`, {
+      code: cf.FunctionCode.fromInline(`
+        function handler(event) {
+          var response = event.response;
+          var headers = response.headers;
+          
+          headers['strict-transport-security'] = { value: 'max-age=63072000; includeSubdomains; preload' };
+          headers['x-content-type-options'] = { value: 'nosniff' };
+          headers['x-frame-options'] = { value: 'DENY' };
+          headers['x-xss-protection'] = { value: '1; mode=block' };
+          headers['referrer-policy'] = { value: 'strict-origin-when-cross-origin' };
+          headers['permissions-policy'] = { value: 'camera=(), microphone=(), geolocation=()' };
+          
+          return response;
+        }
+      `),
+    });
+
+    // Create cache policy
+    const cachePolicy = new cloudfront.CachePolicy(this, `CachePolicy-${stage}`, {
+      defaultTtl: cdk.Duration.days(1),
+      minTtl: cdk.Duration.minutes(1),
+      maxTtl: cdk.Duration.days(365),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList('Accept'),
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+    });
 
     // Create CloudFront distribution
     const distribution = new cloudfront.Distribution(
@@ -142,19 +119,21 @@ export class PortfolioInfraStack extends cdk.Stack {
       {
         defaultBehavior: {
           origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
           compress: true,
-          responseHeadersPolicy: securityHeadersPolicy,
+          functionAssociations: [{
+            function: securityHeadersFunction,
+            eventType: cf.FunctionEventType.VIEWER_RESPONSE
+          }],
         },
         defaultRootObject: "index.html",
         errorResponses: [
           {
             httpStatus: 404,
-            responseHttpStatus: 404,
-            responsePagePath: "/error.html",
+            responseHttpStatus: 200,
+            responsePagePath: "/index.html",
             ttl: cdk.Duration.hours(1),
           },
         ],
@@ -173,6 +152,54 @@ export class PortfolioInfraStack extends cdk.Stack {
             })
           : undefined,
       }
+    );
+
+    // Create CloudWatch Dashboard
+    const dashboard = new cloudwatch.Dashboard(this, `Dashboard-${stage}`, {
+      dashboardName: `Portfolio-${stage}-Metrics`,
+    });
+
+    dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'CloudFront Requests',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/CloudFront',
+            metricName: 'Requests',
+            dimensionsMap: {
+              DistributionId: distribution.distributionId,
+              Region: 'Global'
+            },
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5)
+          })
+        ]
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'CloudFront Error Rate',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/CloudFront',
+            metricName: '4xxErrorRate',
+            dimensionsMap: {
+              DistributionId: distribution.distributionId,
+              Region: 'Global'
+            },
+            statistic: 'Average',
+            period: cdk.Duration.minutes(5)
+          }),
+          new cloudwatch.Metric({
+            namespace: 'AWS/CloudFront',
+            metricName: '5xxErrorRate',
+            dimensionsMap: {
+              DistributionId: distribution.distributionId,
+              Region: 'Global'
+            },
+            statistic: 'Average',
+            period: cdk.Duration.minutes(5)
+          })
+        ]
+      })
     );
 
     // Add CloudFront request monitoring only when detailed monitoring is enabled
@@ -218,10 +245,21 @@ export class PortfolioInfraStack extends cdk.Stack {
       exportName: `DistributionId-${stage}`,
     });
 
+    new cdk.CfnOutput(this, "DistributionDomainName", {
+      value: distribution.distributionDomainName,
+      description: `CloudFront Domain Name for ${stage} environment`,
+      exportName: `DistributionDomainName-${stage}`,
+    });
+
     new cdk.CfnOutput(this, "BucketName", {
       value: websiteBucket.bucketName,
       description: `S3 Bucket Name for ${stage} environment`,
       exportName: `BucketName-${stage}`,
+    });
+
+    new cdk.CfnOutput(this, "DashboardURL", {
+      value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=${dashboard.dashboardName}`,
+      description: 'URL for the CloudWatch Dashboard',
     });
   }
 }
