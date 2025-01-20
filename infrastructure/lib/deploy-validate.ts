@@ -9,9 +9,13 @@ interface ValidationResult {
   distributionId: string;
 }
 
-export async function deployDevEnvironment(): Promise<ValidationResult> {
+export async function deployDevEnvironment(
+  stage: string = "dev"
+): Promise<ValidationResult> {
   const client = new CloudFormationClient({ region: process.env.AWS_REGION });
-  const stackName = process.env.STACK_NAME || "PortfolioInfraStack";
+  const stackName = `${
+    process.env.STACK_NAME || "PortfolioInfraStack"
+  }-${stage}`;
 
   try {
     const { Stacks } = await client.send(
@@ -27,8 +31,8 @@ export async function deployDevEnvironment(): Promise<ValidationResult> {
       throw new Error("No outputs found in stack");
     }
 
-    const bucketName = getOutputValue(outputs, 'devBucketName');
-    const distributionId = getOutputValue(outputs, 'devDistributionId');
+    const bucketName = getOutputValue(outputs, "BucketName");
+    const distributionId = getOutputValue(outputs, "DistributionId");
 
     return {
       bucketName,
