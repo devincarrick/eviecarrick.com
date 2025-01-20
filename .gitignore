@@ -1,5 +1,4 @@
 # Node/CDK
-*.js
 !jest.config.js
 !infrastructure/eslint.config.js
 !infrastructure/.eslintrc.js
@@ -21,3 +20,10 @@ cdk.out/
 # Claude
 claude/
 .codegpt
+
+# Keep JavaScript source files
+!website/src/js/
+!website/src/js/*.js
+
+# Ignore build output
+dist/
