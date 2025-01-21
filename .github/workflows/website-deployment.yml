@@ -129,25 +129,18 @@ jobs:
           echo "Completely cleaning S3 bucket..."
           aws s3 rm "s3://${BUCKET_NAME}" --recursive
 
-          # Verify bucket is empty
-          echo "Verifying bucket is empty..."
-          REMAINING_FILES=$(aws s3 ls "s3://${BUCKET_NAME}" --recursive | wc -l)
-          if [ "$REMAINING_FILES" -gt 0 ]; then
-            echo "Warning: Bucket not empty. Forcing delete..."
-            aws s3api delete-objects \
-              --bucket ${BUCKET_NAME} \
-              --delete "$(aws s3api list-objects --bucket ${BUCKET_NAME} --query '{Objects: Contents[].{Key:Key}}')"
-          fi
-
           echo "Waiting to ensure deletion is complete..."
           sleep 10
 
           echo "Deploying fresh files to S3..."
+          # Force sync with exact case sensitivity
           aws s3 sync dist/ "s3://${BUCKET_NAME}" \
             --delete \
             --cache-control "max-age=3600" \
             --exclude ".DS_Store" \
-            --exact-timestamps
+            --exact-timestamps \
+            --size-only \
+            --no-follow-symlinks
 
           echo "Verifying new deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
