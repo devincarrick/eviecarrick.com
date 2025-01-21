@@ -119,27 +119,37 @@ jobs:
           STAGE="${{ github.event.inputs.environment || 'dev' }}"
           BUCKET_NAME="portfolio-${STAGE}-${{ secrets.AWS_ACCOUNT_ID }}"
 
-          # Get CloudFront distribution ID from CloudFormation stack
+          # Get CloudFront distribution ID
           STACK_NAME="PortfolioInfraStack-${STAGE}"
           DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
             --stack-name ${STACK_NAME} \
             --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue' \
             --output text)
 
-          echo "Cleaning S3 bucket..."
+          echo "Completely cleaning S3 bucket..."
           aws s3 rm "s3://${BUCKET_NAME}" --recursive
 
-          echo "Waiting for delete operation to complete..."
-          sleep 5
+          # Verify bucket is empty
+          echo "Verifying bucket is empty..."
+          REMAINING_FILES=$(aws s3 ls "s3://${BUCKET_NAME}" --recursive | wc -l)
+          if [ "$REMAINING_FILES" -gt 0 ]; then
+            echo "Warning: Bucket not empty. Forcing delete..."
+            aws s3api delete-objects \
+              --bucket ${BUCKET_NAME} \
+              --delete "$(aws s3api list-objects --bucket ${BUCKET_NAME} --query '{Objects: Contents[].{Key:Key}}')"
+          fi
 
-          echo "Deploying to S3..."
+          echo "Waiting to ensure deletion is complete..."
+          sleep 10
+
+          echo "Deploying fresh files to S3..."
           aws s3 sync dist/ "s3://${BUCKET_NAME}" \
             --delete \
             --cache-control "max-age=3600" \
             --exclude ".DS_Store" \
             --exact-timestamps
 
-          echo "Verifying deployment..."
+          echo "Verifying new deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
 
           if [ ! -z "$DISTRIBUTION_ID" ]; then
