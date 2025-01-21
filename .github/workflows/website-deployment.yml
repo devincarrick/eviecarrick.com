@@ -132,15 +132,34 @@ jobs:
           echo "Waiting to ensure deletion is complete..."
           sleep 10
 
-          echo "Deploying fresh files to S3..."
-          # Force sync with exact case sensitivity
-          aws s3 sync dist/ "s3://${BUCKET_NAME}" \
-            --delete \
-            --cache-control "max-age=3600" \
-            --exclude ".DS_Store" \
-            --exact-timestamps \
-            --size-only \
-            --no-follow-symlinks
+          echo "Deploying files to S3 using s3api..."
+          # Function to upload a file with correct content type
+          upload_file() {
+            local file="$1"
+            local key="${file#dist/}"
+            local content_type=""
+            
+            case "${file##*.}" in
+              jpg|JPG|jpeg|JPEG) content_type="image/jpeg" ;;
+              png|PNG) content_type="image/png" ;;
+              html) content_type="text/html" ;;
+              css) content_type="text/css" ;;
+              js) content_type="application/javascript" ;;
+              *) content_type="application/octet-stream" ;;
+            esac
+            
+            echo "Uploading $file as $key with content-type $content_type"
+            aws s3api put-object \
+              --bucket ${BUCKET_NAME} \
+              --key "$key" \
+              --body "$file" \
+              --content-type "$content_type" \
+              --cache-control "max-age=3600"
+          }
+
+          # Upload all files
+          export -f upload_file
+          find dist -type f ! -name '.DS_Store' -exec bash -c 'upload_file "$0"' {} \;
 
           echo "Verifying new deployment..."
           aws s3 ls "s3://${BUCKET_NAME}" --recursive
