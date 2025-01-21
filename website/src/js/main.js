@@ -1,7 +1,7 @@
 // Component loading functionality
 async function loadComponent(name) {
   try {
-    const path = `/components/${name}.html`;
+    const path = `components/${name}.html`;
     const response = await fetch(path);
     if (!response.ok) throw new Error(`Failed to load ${name} component`);
     return await response.text();
