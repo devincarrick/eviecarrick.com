@@ -27,3 +27,4 @@ claude/
 
 # Ignore build output
 dist/
+website/dist/
