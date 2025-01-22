@@ -2,15 +2,21 @@
   "name": "evie-carrick-portfolio",
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently \"tailwindcss -i ./src/input.css -o ./dist/output.css --watch\" \"live-server . --port=3000 --open=/src/index.html\"",
+    "dev": "npm run build && concurrently \"npm run watch:css\" \"npm run watch:html\" \"npm run serve\"",
+    "serve": "live-server dist --port=3000",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "watch:html": "nodemon --watch src --ext html --exec \"npm run copy:files\"",
     "build": "npm run build:css && npm run copy:files",
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
     "copy:files": "mkdir -p dist/js dist/components && cp -r public/* dist/ && cp -r src/components/* dist/components/ && cp -r src/js/* dist/js/ && cp -r src/*.html dist/",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "setup": "./scripts/setup-dev.sh",
+    "start": "npm run setup && npm run dev"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
     "live-server": "^1.2.2",
+    "nodemon": "^3.1.9",
     "tailwindcss": "^3.4.1"
   }
 }
