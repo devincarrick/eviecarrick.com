@@ -92,7 +92,7 @@ In case of deployment issues:
 ### Dev Environment
 - CloudFront Domain: dz1msirpyjkj8.cloudfront.net
 - S3 Bucket: portfolio-dev-296823332599
-- Distribution ID: E2JPV9LHZF6OGL
+- Distribution ID: E32YTIYDFDQIXD
 
 ### Important Notes
 - All changes should be made through Infrastructure as Code
