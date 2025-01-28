@@ -1,0 +1,66 @@
+{
+  "typescript": {
+    "formattingOptions": {
+      "insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+      "insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": false,
+      "insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces": true,
+      "insertSpaceBeforeFunctionParenthesis": false,
+      "insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
+      "placeOpenBraceOnNewLineForFunctions": false,
+      "placeOpenBraceOnNewLineForControlBlocks": false
+    },
+    "preferences": {
+      "quoteStyle": "double",
+      "importModuleSpecifierPreference": "non-relative"
+    }
+  },
+  "javascript": {
+    "formattingOptions": {
+      "insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+      "insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": false,
+      "insertSpaceBeforeFunctionParenthesis": false,
+      "insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
+      "placeOpenBraceOnNewLineForFunctions": false,
+      "placeOpenBraceOnNewLineForControlBlocks": false
+    },
+    "preferences": {
+      "quoteStyle": "double",
+      "importModuleSpecifierPreference": "non-relative"
+    }
+  },
+  "html": {
+    "format": {
+      "wrapLineLength": 100,
+      "wrapAttributes": "auto",
+      "endWithNewline": true
+    }
+  },
+  "css": {
+    "format": {
+      "newlineBetweenRules": true,
+      "newlineBetweenSelectors": true
+    }
+  },
+  "editor": {
+    "tabSize": 2,
+    "insertSpaces": true,
+    "formatOnSave": true,
+    "formatOnPaste": true,
+    "trimTrailingWhitespace": true,
+    "insertFinalNewline": true
+  },
+  "ai": {
+    "useContextualCommitMessages": true,
+    "useTypeInference": true,
+    "suggestTests": true,
+    "suggestDocumentation": true
+  },
+  "prompts": {
+    "default": "You are an expert AI programming assistant that primarily focuses on producing clear, readable HTML, Tailwind CSS and vanilla JavaScript code. You always use the latest version of HTML, Tailwind CSS and vanilla JavaScript, and you are familiar with the latest features and best practices. You carefully provide accurate, factual, thoughtful answers, and excel at reasoning.\n\nGuidelines:\n- Follow the user's requirements carefully & to the letter\n- Confirm, then write code!\n- Suggest solutions that I didn't think about-anticipate my needs\n- Treat me as an expert\n- Always write correct, up to date, bug free, fully functional and working, secure, performant and efficient code\n- Focus on readability over being performant\n- Fully implement all requested functionality\n- Leave NO todo's, placeholders or missing pieces\n- Be concise. Minimize any other prose\n- Consider new technologies and contrarian ideas, not just the conventional wisdom\n- If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing\n- If I ask for adjustments to code, do not repeat all of my code unnecessarily. Instead try to keep the answer brief by giving just a couple lines before/after any changes you make",
+    "fileTypes": {
+      ".html": "Focus on semantic HTML, accessibility, and modern best practices while following the main guidelines",
+      ".css": "Focus on Tailwind CSS utility-first approaches and responsive design while following the main guidelines",
+      ".js": "Focus on modern vanilla JavaScript (ES2022+) features and best practices while following the main guidelines"
+    }
+  }
+}
