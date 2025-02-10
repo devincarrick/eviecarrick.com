@@ -1,11 +1,13 @@
 # Dev Environment Configuration Documentation
 
 ## Overview
+
 This document outlines the configuration and setup of the development environment for the portfolio website infrastructure.
 
 ## Infrastructure Components
 
 ### S3 Configuration
+
 - **Bucket Name**: `portfolio-dev-296823332599`
 - **Access**: Private bucket with CloudFront access only
 - **Security Features**:
@@ -18,6 +20,7 @@ This document outlines the configuration and setup of the development environmen
   - Minimal storage costs for static website content
 
 ### CloudFront Configuration
+
 - **Access Control**: Origin Access Control (OAC) implemented
 - **Security**:
   - HTTPS only (redirect HTTP to HTTPS)
@@ -31,6 +34,7 @@ This document outlines the configuration and setup of the development environmen
   - Basic monitoring in dev environment
 
 ### Monitoring & Alerts
+
 - **Cost Alarms**:
   - Basic monthly cost alarm (threshold: $5)
   - CloudFront requests monitoring (when detailed monitoring enabled)
@@ -42,16 +46,19 @@ This document outlines the configuration and setup of the development environmen
 ## Deployment Process
 
 ### Environment Validation
+
 - Valid stages: `dev`, `staging`, `prod`
 - Stage validation implemented in deployment scripts
 - Default stage: `dev`
 
 ### Deployment Command
+
 ```bash
 npx ts-node lib/deploy-dev.ts [stage]
 ```
 
 ### Deployment Validation Steps
+
 1. Validates AWS credentials
 2. Confirms stack deployment
 3. Verifies S3 bucket configuration
@@ -59,6 +66,7 @@ npx ts-node lib/deploy-dev.ts [stage]
 5. Validates monitoring configuration
 
 ## Security Measures
+
 - Private S3 bucket with no public access
 - CloudFront OAC for secure S3 access
 - SSL/TLS enforcement
@@ -66,7 +74,9 @@ npx ts-node lib/deploy-dev.ts [stage]
 - No public endpoints except CloudFront distribution
 
 ### Security Headers
+
 CloudFront is configured with a custom response headers policy that includes:
+
 - Content Security Policy (CSP): Restricts resource loading
   - default-src 'self'
   - img-src 'self' data: https:
@@ -81,6 +91,7 @@ CloudFront is configured with a custom response headers policy that includes:
 - Permissions Policy: Restricts browser features (camera, microphone, geolocation)
 
 ## Cost Optimization Features
+
 - Limited geographic distribution (PRICE_CLASS_100)
 - Basic monitoring only
 - No lifecycle rules or versioning
@@ -88,16 +99,19 @@ CloudFront is configured with a custom response headers policy that includes:
 - Environment-specific configurations
 
 ## Known Limitations
+
 - Domain configuration pending (using CloudFront domain for now)
 - Basic monitoring only in dev environment
 - Security headers to be implemented in future update
 
 ## Next Steps
+
 1. Implement security headers
 2. Set up CI/CD pipeline
 3. Configure automated testing
 4. Implement remaining Phase 2 tasks
 
 ## Resource URLs
-- CloudFront Distribution: `dz1msirpyjkj8.cloudfront.net`
+
+- CloudFront Distribution: `d3ezhefaj69srx.cloudfront.net`
 - S3 Bucket: `portfolio-dev-296823332599`

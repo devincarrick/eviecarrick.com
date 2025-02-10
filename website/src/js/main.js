@@ -1,13 +1,34 @@
 // Component loading functionality
 async function loadComponent(name) {
   try {
-    const path = `components/${name}.html`;
+    const path = `/components/${name}.html`;
+    console.log(`[DEBUG] Loading ${name} from path: ${path}`);
     const response = await fetch(path);
     if (!response.ok) throw new Error(`Failed to load ${name} component`);
-    return await response.text();
+    const content = await response.text();
+    console.log(`[DEBUG] ${name} content loaded, length: ${content.length}`);
+    return content;
   } catch (error) {
     console.error(`Error loading ${name} component:`, error);
     return "";
+  }
+}
+
+async function loadPortfolioSection() {
+  const portfolioElement = document.querySelector("#portfolio");
+  if (!portfolioElement) return;
+
+  try {
+    console.log("[DEBUG] Loading portfolio section components");
+    const quoteContent = await loadComponent("commercial-quote");
+    const commercialContent = await loadComponent("commercial-section");
+
+    const wrappedQuoteContent = `<div id="commercial-quote" class="bg-transparent">${quoteContent}</div>`;
+    portfolioElement.innerHTML = wrappedQuoteContent + commercialContent;
+
+    console.log("[DEBUG] Portfolio section loaded successfully");
+  } catch (error) {
+    console.error("[DEBUG] Error loading portfolio section:", error);
   }
 }
 
@@ -33,28 +54,33 @@ async function initComponents() {
 
     // Load other components if on main page
     if (document.querySelector("#hero")) {
+      // Load basic components
       const components = {
         "#hero": "hero",
-        "#editorial-quote": "editorial-quote",
         "#editorial-work": "editorial-section",
-        "#commercial-quote": "commercial-quote",
-        "#commercial-work": "commercial-section",
         "#footer": "footer",
       };
 
       for (const [selector, component] of Object.entries(components)) {
         const element = document.querySelector(selector);
         if (element) {
-          element.innerHTML = await loadComponent(component);
+          const content = await loadComponent(component);
+          element.innerHTML = content;
         }
       }
+
+      // Load portfolio section
+      await loadPortfolioSection();
     }
   } catch (error) {
     console.error("Error in initComponents:", error);
   }
 }
 
-// Initialize immediately
-initComponents().catch((error) =>
-  console.error("Error in initialization:", error)
-);
+// Initialize when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("[DEBUG] DOM loaded, initializing components");
+  initComponents().catch((error) =>
+    console.error("Error in initialization:", error)
+  );
+});
