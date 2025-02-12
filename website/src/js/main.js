@@ -14,22 +14,102 @@ async function loadComponent(name) {
   }
 }
 
-async function loadPortfolioSection() {
-  const portfolioElement = document.querySelector("#portfolio");
-  if (!portfolioElement) return;
+// Handle image loading with Intersection Observer
+function handleImageLoading() {
+  const imageObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          // Start loading the image before it comes into view
+          if (img.dataset.src) {
+            const newImg = new Image();
+            newImg.onload = () => {
+              img.src = img.dataset.src;
+              img.classList.add("fade-in", "loaded");
+            };
+            newImg.src = img.dataset.src;
+            delete img.dataset.src;
+          }
+          observer.unobserve(img);
+        }
+      });
+    },
+    {
+      // Start loading when image is 50% viewport height away
+      rootMargin: "50% 0px",
+      threshold: 0.1,
+    }
+  );
 
-  try {
-    console.log("[DEBUG] Loading portfolio section components");
-    const quoteContent = await loadComponent("commercial-quote");
-    const commercialContent = await loadComponent("commercial-section");
+  const images = document.querySelectorAll("img[data-src]");
+  images.forEach((img) => {
+    imageObserver.observe(img);
+    img.classList.add("fade-in");
+  });
 
-    const wrappedQuoteContent = `<div id="commercial-quote" class="bg-transparent">${quoteContent}</div>`;
-    portfolioElement.innerHTML = wrappedQuoteContent + commercialContent;
+  // Immediately load images that are already in view
+  const visibleImages = document.querySelectorAll("img:not([data-src])");
+  visibleImages.forEach((img) => {
+    img.classList.add("fade-in", "loaded");
+  });
+}
 
-    console.log("[DEBUG] Portfolio section loaded successfully");
-  } catch (error) {
-    console.error("[DEBUG] Error loading portfolio section:", error);
+// Preload next section's images
+function preloadNextSectionImages(currentSection) {
+  const nextSection = currentSection.nextElementSibling;
+  if (nextSection) {
+    const images = nextSection.querySelectorAll("img[data-src]");
+    images.forEach((img) => {
+      const preloadLink = document.createElement("link");
+      preloadLink.rel = "preload";
+      preloadLink.as = "image";
+      preloadLink.href = img.dataset.src;
+      document.head.appendChild(preloadLink);
+    });
   }
+}
+
+// Handle smooth scrolling with preloading
+function handleSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute("href");
+      const target = document.querySelector(targetId);
+      if (target) {
+        // Preload images in the target section
+        const images = target.querySelectorAll("img[data-src]");
+        images.forEach((img) => {
+          const preloadLink = document.createElement("link");
+          preloadLink.rel = "preload";
+          preloadLink.as = "image";
+          preloadLink.href = img.dataset.src;
+          document.head.appendChild(preloadLink);
+        });
+
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    });
+  });
+}
+
+// Preload all images
+function preloadAllImages() {
+  const allImages = document.querySelectorAll("img");
+  allImages.forEach((img) => {
+    const src = img.src || img.dataset.src;
+    if (src) {
+      const preloadLink = document.createElement("link");
+      preloadLink.rel = "preload";
+      preloadLink.as = "image";
+      preloadLink.href = src;
+      document.head.appendChild(preloadLink);
+    }
+  });
 }
 
 async function initComponents() {
@@ -54,23 +134,36 @@ async function initComponents() {
 
     // Load other components if on main page
     if (document.querySelector("#hero")) {
-      // Load basic components
-      const components = {
-        "#hero": "hero",
-        "#editorial-work": "editorial-section",
-        "#footer": "footer",
-      };
+      // Load components in specific order
+      const components = [
+        { selector: "#hero", name: "hero" },
+        { selector: "#editorial-work", name: "editorial-section" },
+        { selector: "#commercial-quote", name: "commercial-quote" },
+        { selector: "#commercial-section", name: "commercial-section" },
+      ];
 
-      for (const [selector, component] of Object.entries(components)) {
+      // Load main content first
+      for (const { selector, name } of components) {
         const element = document.querySelector(selector);
         if (element) {
-          const content = await loadComponent(component);
+          const content = await loadComponent(name);
           element.innerHTML = content;
+          handleImageLoading();
         }
       }
 
-      // Load portfolio section
-      await loadPortfolioSection();
+      // Load footer last
+      const footerElement = document.querySelector("#footer");
+      if (footerElement) {
+        const footerContent = await loadComponent("footer");
+        footerElement.innerHTML = footerContent;
+      }
+
+      // Preload all images after components are loaded
+      preloadAllImages();
+
+      // Initialize smooth scrolling
+      handleSmoothScroll();
     }
   } catch (error) {
     console.error("Error in initComponents:", error);

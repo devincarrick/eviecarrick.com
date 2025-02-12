@@ -1,10 +1,35 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth scroll-pt-40 overflow-x-hidden">
+<html lang="en" class="scroll-pt-40 overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Evie Carrick | WRITER + COPYWRITER + EDITOR</title>
     <link href="output.css" rel="stylesheet" />
+    <!-- Preload critical images -->
+    <link rel="preload" as="image" href="/images/background.jpg" />
+    <link rel="preload" as="image" href="/images/landing-photo.jpg" />
+    <style>
+      html {
+        height: 100%;
+      }
+      body {
+        min-height: 100%;
+      }
+      /* Add fade-in animation for images */
+      .fade-in {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        will-change: opacity;
+      }
+      .fade-in.loaded {
+        opacity: 1;
+      }
+      /* Prevent layout shift during image load */
+      img {
+        transform: translateZ(0);
+        backface-visibility: hidden;
+      }
+    </style>
   </head>
   <body class="font-sans text-[#060507] bg-white overflow-x-hidden">
     <header class="fixed top-0 w-full z-50"></header>
@@ -15,14 +40,13 @@
         <!-- <div id="editorial-quote"></div> -->
         <div id="editorial-work"></div>
       </div>
-      <div
-        id="portfolio"
-        class="mt-32 grid gap-8 mb-20 px-4 md:px-6 lg:px-8"
-      ></div>
+      <div id="commercial-quote"></div>
+      <div id="portfolio" class="mt-8 grid gap-8 mb-20 px-4 md:px-6 lg:px-8">
+        <div id="commercial-section"></div>
+      </div>
     </main>
 
     <div id="footer"></div>
-    <div id="modals"></div>
 
     <script src="js/main.js"></script>
   </body>
