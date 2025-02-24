@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
 
+# Add permissions block at workflow level
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
