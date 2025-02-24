@@ -73,9 +73,28 @@ describe("Error Handling", () => {
 
     // Simulate uncaught error
     const error = new Error("Uncaught error");
-    window.onerror("Error message", "test.js", 1, 1, error);
+    const errorEvent = new ErrorEvent("error", {
+      error,
+      message: error.message,
+      filename: "test.js",
+      lineno: 1,
+      colno: 1
+    });
+    
+    window.dispatchEvent(errorEvent);
 
-    expect(Sentry.captureException).toHaveBeenCalledWith(error);
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        extra: expect.objectContaining({
+          context: "Uncaught error"
+        }),
+        tags: expect.objectContaining({
+          errorType: "Error",
+          component: "Uncaught error"
+        })
+      })
+    );
   });
 
   test("component loading errors are handled gracefully", async () => {

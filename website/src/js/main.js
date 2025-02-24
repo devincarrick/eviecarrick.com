@@ -3,6 +3,12 @@ import { initSentry, logError } from "./sentry-config";
 // Initialize Sentry in production
 initSentry();
 
+// Set up global error handler
+window.onerror = (message, source, line, column, error) => {
+  logError(error || new Error(message), "Uncaught error");
+  return false;
+};
+
 // Component loading functionality
 export async function loadComponent(name) {
   try {

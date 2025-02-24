@@ -3,18 +3,26 @@ import userEvent from "@testing-library/user-event";
 
 describe("Navigation", () => {
   beforeEach(() => {
+    // Mock fetch for component loading
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        text: () => Promise.resolve(`
+          <nav>
+            <button id="menuBtn" aria-label="Toggle menu">Menu</button>
+            <div id="mobileMenu" class="hidden">
+              <a href="#hero">Home</a>
+              <a href="#editorial">Editorial</a>
+              <a href="#portfolio">Portfolio</a>
+            </div>
+          </nav>
+        `)
+      })
+    );
+
     // Setup DOM with navigation elements
     document.body.innerHTML = `
-      <header>
-        <nav>
-          <button id="menuBtn" aria-label="Toggle menu">Menu</button>
-          <div id="mobileMenu" class="hidden">
-            <a href="#hero">Home</a>
-            <a href="#editorial">Editorial</a>
-            <a href="#portfolio">Portfolio</a>
-          </div>
-        </nav>
-      </header>
+      <header></header>
       <main>
         <section id="hero">Hero Section</section>
         <section id="editorial">Editorial Section</section>
@@ -29,6 +37,7 @@ describe("Navigation", () => {
   afterEach(() => {
     document.body.innerHTML = "";
     jest.clearAllMocks();
+    global.fetch.mockClear();
   });
 
   test("mobile menu toggle works correctly", async () => {
