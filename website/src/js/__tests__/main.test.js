@@ -1,5 +1,4 @@
 import { screen } from "@testing-library/dom";
-import userEvent from "@testing-library/user-event";
 
 describe("Main functionality", () => {
   beforeEach(() => {

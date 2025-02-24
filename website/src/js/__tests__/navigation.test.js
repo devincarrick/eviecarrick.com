@@ -78,7 +78,7 @@ describe("Navigation", () => {
     const { handleSmoothScroll } = await import("../main.js");
     handleSmoothScroll();
 
-    const editorialLink = document.querySelector('a[href="#editorial"]');
+    const editorialLink = document.querySelector("a[href=\"#editorial\"]");
     const editorialSection = document.querySelector("#editorial");
     
     expect(editorialLink).not.toBeNull();

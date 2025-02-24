@@ -1,4 +1,3 @@
-const { screen } = require("@testing-library/dom");
 require("@testing-library/jest-dom");
 
 // Mock fetch for component loading
@@ -63,7 +62,7 @@ describe("Component Loading", () => {
     };
 
     // Mock successful fetch for each component
-    Object.entries(mockComponents).forEach(([name, content]) => {
+    Object.values(mockComponents).forEach(content => {
       fetch.mockResolvedValueOnce({
         ok: true,
         text: () => Promise.resolve(content)

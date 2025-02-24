@@ -26,7 +26,7 @@ describe("Image Loading", () => {
     const mockUnobserve = jest.fn();
 
     // Mock IntersectionObserver
-    window.IntersectionObserver = jest.fn(callback => ({
+    window.IntersectionObserver = jest.fn(() => ({
       observe: mockObserve,
       unobserve: mockUnobserve,
       disconnect: jest.fn()

@@ -68,12 +68,12 @@ describe("Error Handling", () => {
 
   test("window.onerror handler captures uncaught errors", async () => {
     // Import main to set up error handler
-    const { initSentry, logError } = await import("../sentry-config.js");
+    const { logError } = await import("../sentry-config.js");
     const Sentry = require("@sentry/browser");
 
     // Mock window.onerror to prevent actual error throwing
     const mockOnError = jest.fn();
-    window.addEventListener('error', (event) => {
+    window.addEventListener("error", (event) => {
       event.preventDefault();
       mockOnError(event);
     }, true);
