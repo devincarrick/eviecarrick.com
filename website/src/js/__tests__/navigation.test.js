@@ -52,7 +52,7 @@ describe("Navigation", () => {
     const { handleSmoothScroll } = await import("../main.js");
     handleSmoothScroll();
 
-    const editorialLink = document.querySelector('a[href="#editorial"]');
+    const editorialLink = document.querySelector("a[href=\"#editorial\"]");
     const editorialSection = document.querySelector("#editorial");
     
     // Mock preventDefault
@@ -82,11 +82,11 @@ describe("Navigation", () => {
     const { handleSmoothScroll } = await import("../main.js");
     handleSmoothScroll();
 
-    const link = document.querySelector('a[href="#target"]');
+    const link = document.querySelector("a[href=\"#target\"]");
     link.click();
 
     // Check if preload links were added
-    const preloadLinks = document.head.querySelectorAll("link[rel='preload']");
+    const preloadLinks = document.head.querySelectorAll("link[rel=\"preload\"]");
     expect(preloadLinks).toHaveLength(2);
     expect(preloadLinks[0].href).toContain("target1.jpg");
     expect(preloadLinks[1].href).toContain("target2.jpg");
