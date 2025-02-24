@@ -115,3 +115,19 @@ CloudFront is configured with a custom response headers policy that includes:
 
 - CloudFront Distribution: `d3ezhefaj69srx.cloudfront.net`
 - S3 Bucket: `portfolio-dev-296823332599`
+
+## DNS Configuration
+- Hosted Zone ID: Z029633570U83WANWX5K
+- Nameservers:
+```bash
+ns-1635.awsdns-12.co.uk
+ns-1483.awsdns-57.org
+ns-696.awsdns-23.net
+ns-11.awsdns-01.com
+```
+
+Domain Transfer ID:
+- OperationId": "859b5176-d902-4996-b11e-801299a97be2"
+
+Command to check domain transfer status
+- aws route53domains get-operation-detail --operation-id 859b5176-d902-4996-b11e-801299a97be2

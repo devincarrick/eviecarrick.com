@@ -16,10 +16,7 @@ cdk.out/
 
 # VSCode
 .vscode/
-
-# Claude
-claude/
-.codegpt
+.cursor/rules
 
 # Keep JavaScript source files
 !website/src/js/

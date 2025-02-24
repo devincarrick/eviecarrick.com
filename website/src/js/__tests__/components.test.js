@@ -1,5 +1,5 @@
-import { screen } from "@testing-library/dom";
-import "@testing-library/jest-dom";
+const { screen } = require("@testing-library/dom");
+require("@testing-library/jest-dom");
 
 // Mock fetch for component loading
 global.fetch = jest.fn();

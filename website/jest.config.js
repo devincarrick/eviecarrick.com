@@ -5,6 +5,12 @@ module.exports = {
     "\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js",
     "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/__mocks__/fileMock.js"
   },
+  transform: {
+    "^.+\\.(js|jsx)$": "babel-jest"
+  },
+  transformIgnorePatterns: [
+    "/node_modules/(?!(@testing-library|@babel)/)"
+  ],
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
   collectCoverageFrom: [
     "src/js/**/*.js",
