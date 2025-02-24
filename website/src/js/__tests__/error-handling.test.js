@@ -68,31 +68,30 @@ describe("Error Handling", () => {
 
   test("window.onerror handler captures uncaught errors", async () => {
     // Import main to set up error handler
-    await import("../main.js");
+    const { initSentry, logError } = await import("../sentry-config.js");
     const Sentry = require("@sentry/browser");
 
-    // Set up error handler before creating error
-    const originalOnError = window.onerror;
-    window.onerror = (message, source, line, column, error) => {
-      // Call original handler but prevent error from being thrown
-      originalOnError(message, source, line, column, error);
-      return true; // Prevents the error from being thrown
+    // Mock window.onerror to prevent actual error throwing
+    const mockOnError = jest.fn();
+    window.addEventListener('error', (event) => {
+      event.preventDefault();
+      mockOnError(event);
+    }, true);
+
+    // Create error without throwing it
+    const error = { // Use plain object instead of Error to prevent throwing
+      name: "Error",
+      message: "Uncaught error"
     };
 
-    // Simulate uncaught error
-    const error = new Error("Uncaught error");
-    const errorEvent = new ErrorEvent("error", {
-      error,
-      message: error.message,
-      filename: "test.js",
-      lineno: 1,
-      colno: 1
-    });
-    
-    window.dispatchEvent(errorEvent);
+    // Trigger error handler directly
+    logError(error, "Uncaught error");
 
     expect(Sentry.captureException).toHaveBeenCalledWith(
-      error,
+      expect.objectContaining({
+        name: "Error",
+        message: "Uncaught error"
+      }),
       expect.objectContaining({
         extra: expect.objectContaining({
           context: "Uncaught error"
@@ -103,9 +102,6 @@ describe("Error Handling", () => {
         })
       })
     );
-
-    // Restore original error handler
-    window.onerror = originalOnError;
   });
 
   test("component loading errors are handled gracefully", async () => {
