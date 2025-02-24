@@ -71,6 +71,14 @@ describe("Error Handling", () => {
     await import("../main.js");
     const Sentry = require("@sentry/browser");
 
+    // Set up error handler before creating error
+    const originalOnError = window.onerror;
+    window.onerror = (message, source, line, column, error) => {
+      // Call original handler but prevent error from being thrown
+      originalOnError(message, source, line, column, error);
+      return true; // Prevents the error from being thrown
+    };
+
     // Simulate uncaught error
     const error = new Error("Uncaught error");
     const errorEvent = new ErrorEvent("error", {
@@ -95,6 +103,9 @@ describe("Error Handling", () => {
         })
       })
     );
+
+    // Restore original error handler
+    window.onerror = originalOnError;
   });
 
   test("component loading errors are handled gracefully", async () => {

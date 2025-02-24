@@ -61,6 +61,20 @@ describe("Navigation", () => {
   });
 
   test("smooth scroll is triggered on anchor click", async () => {
+    // Set up navigation links first
+    document.body.innerHTML = `
+      <nav>
+        <a href="#hero">Home</a>
+        <a href="#editorial">Editorial</a>
+        <a href="#portfolio">Portfolio</a>
+      </nav>
+      <main>
+        <section id="hero">Hero Section</section>
+        <section id="editorial">Editorial Section</section>
+        <section id="portfolio">Portfolio Section</section>
+      </main>
+    `;
+
     const { handleSmoothScroll } = await import("../main.js");
     handleSmoothScroll();
 
