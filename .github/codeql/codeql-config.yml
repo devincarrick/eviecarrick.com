@@ -1,0 +1,15 @@
+name: "CodeQL Config"
+
+queries:
+  - uses: security-and-quality
+
+paths:
+  - website/src
+  - website/cypress
+paths-ignore:
+  - '**/node_modules'
+  - '**/dist'
+  - '**/*.test.js'
+  - '**/*.spec.js'
+  - '**/cypress/support'
+  - '**/cypress/fixtures' 
