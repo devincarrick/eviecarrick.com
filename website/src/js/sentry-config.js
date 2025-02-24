@@ -1,12 +1,12 @@
 import * as Sentry from "@sentry/browser";
-import { browserTracingIntegration } from "@sentry/browser";
+import { BrowserTracing } from "@sentry/browser";
 
 export function initSentry() {
   if (process.env.NODE_ENV === "production") {
     Sentry.init({
       dsn: "YOUR_SENTRY_DSN", // Replace with your actual DSN
       integrations: [
-        browserTracingIntegration(),
+        new BrowserTracing(),
       ],
       tracesSampleRate: 1.0,
       environment: process.env.NODE_ENV,

@@ -4,7 +4,7 @@ import { initSentry, logError } from "./sentry-config";
 initSentry();
 
 // Component loading functionality
-async function loadComponent(name) {
+export async function loadComponent(name) {
   try {
     const path = `/components/${name}.html`;
     const response = await fetch(path);
@@ -17,7 +17,7 @@ async function loadComponent(name) {
 }
 
 // Handle image loading with Intersection Observer
-function handleImageLoading() {
+export function handleImageLoading() {
   const imageObserver = new IntersectionObserver(
     (entries, observer) => {
       entries.forEach(entry => {
@@ -58,7 +58,7 @@ function handleImageLoading() {
 }
 
 // Preload next section's images
-function preloadNextSectionImages(currentSection) {
+export function preloadNextSectionImages(currentSection) {
   const nextSection = currentSection.nextElementSibling;
   if (nextSection) {
     const images = nextSection.querySelectorAll("img[data-src]");
@@ -73,7 +73,7 @@ function preloadNextSectionImages(currentSection) {
 }
 
 // Handle smooth scrolling with preloading
-function handleSmoothScroll() {
+export function handleSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener("click", function (e) {
       e.preventDefault();
@@ -100,7 +100,7 @@ function handleSmoothScroll() {
 }
 
 // Preload all images
-function preloadAllImages() {
+export function preloadAllImages() {
   const allImages = document.querySelectorAll("img");
   allImages.forEach(img => {
     const src = img.src || img.dataset.src;
@@ -114,7 +114,7 @@ function preloadAllImages() {
   });
 }
 
-async function initComponents() {
+export async function initComponents() {
   try {
     // Load header first
     const headerElement = document.querySelector("header");
