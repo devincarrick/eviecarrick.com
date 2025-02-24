@@ -1,0 +1,8 @@
+# https://eviecarrick.com/robots.txt
+User-agent: *
+Allow: /
+Disallow: /dist/
+Disallow: /node_modules/
+
+# Sitemaps
+Sitemap: https://eviecarrick.com/sitemap.xml 

@@ -1,13 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-pt-40 overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Evie Carrick | WRITER + COPYWRITER + EDITOR</title>
+
+    <!-- SEO Meta Tags -->
+    <meta
+      name="description"
+      content="Evie Carrick is a professional writer, copywriter, and editor specializing in travel, lifestyle, and outdoor content. Explore her portfolio of work for major publications and brands."
+    />
+    <meta
+      name="keywords"
+      content="Evie Carrick, writer, copywriter, editor, travel writing, content creation, journalism, portfolio"
+    />
+    <meta name="author" content="Evie Carrick" />
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://eviecarrick.com" />
+    <meta property="og:title" content="Evie Carrick | Writer + Copywriter + Editor" />
+    <meta
+      property="og:description"
+      content="Professional writer and editor specializing in travel, lifestyle, and outdoor content. View my portfolio and writing samples."
+    />
+    <meta property="og:image" content="https://eviecarrick.com/images/landing-photo.jpg" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@eviecarrick" />
+    <meta name="twitter:title" content="Evie Carrick | Writer + Copywriter + Editor" />
+    <meta
+      name="twitter:description"
+      content="Professional writer and editor specializing in travel, lifestyle, and outdoor content. View my portfolio and writing samples."
+    />
+    <meta name="twitter:image" content="https://eviecarrick.com/images/landing-photo.jpg" />
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https:; script-src 'self' 'unsafe-inline' https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://eviecarrick.com" />
+
+    <!-- Preload critical assets -->
     <link href="output.css" rel="stylesheet" />
-    <!-- Preload critical images -->
     <link rel="preload" as="image" href="/images/background.jpg" />
     <link rel="preload" as="image" href="/images/landing-photo.jpg" />
+
+    <!-- Simple Performance Monitoring -->
+    <script>
+      // Basic performance monitoring
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const timing = window.performance.timing;
+          const metrics = {
+            pageLoad: timing.loadEventEnd - timing.navigationStart,
+            domReady: timing.domComplete - timing.domLoading,
+            firstPaint: performance.getEntriesByType('paint')[0]?.startTime
+          };
+          
+          // Only log in production
+          if (window.location.hostname === 'eviecarrick.com') {
+            console.log('Performance metrics:', metrics);
+            // Send to Sentry if available
+            if (window.Sentry) {
+              Sentry.addBreadcrumb({
+                category: 'performance',
+                message: 'Page load metrics',
+                data: metrics
+              });
+            }
+          }
+        }, 0);
+      });
+    </script>
+
     <style>
       html {
         height: 100%;

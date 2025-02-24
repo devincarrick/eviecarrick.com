@@ -2,21 +2,67 @@
   "name": "evie-carrick-portfolio",
   "version": "1.0.0",
   "scripts": {
-    "dev": "npm run build && concurrently \"npm run watch:css\" \"npm run watch:html\" \"npm run serve\"",
-    "serve": "live-server dist --port=3000",
+    "dev": "cross-env NODE_ENV=development npm run build && concurrently \"npm run watch:css\" \"npm run watch:html\" \"npm run serve\"",
+    "serve": "sirv dist --port 3000 --dev",
     "watch:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
     "watch:html": "nodemon --watch src --ext html --exec \"npm run copy:files\"",
-    "build": "npm run build:css && npm run copy:files",
+    "build": "cross-env NODE_ENV=production npm run build:css && npm run build:js && npm run copy:files && npm run build:html",
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
-    "copy:files": "mkdir -p dist/js dist/components && cp -r public/* dist/ && cp -r src/components/* dist/components/ && cp -r src/js/* dist/js/ && cp -r src/*.html dist/",
-    "test": "echo \"No tests specified\" && exit 0",
+    "build:js": "esbuild src/js/main.js --bundle --minify --sourcemap --outfile=dist/js/main.js",
+    "build:html": "html-minifier-terser --input-dir dist --output-dir dist --file-ext html --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true",
+    "copy:files": "mkdir -p dist/js dist/components && cp -r public/* dist/ && cp -r src/components/* dist/components/ && cp -r src/*.html dist/",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
     "setup": "./scripts/setup-dev.sh",
-    "start": "npm run setup && npm run dev"
+    "start": "npm run setup && npm run dev",
+    "lint": "eslint src/js/**/*.js",
+    "lint:fix": "eslint src/js/**/*.js --fix",
+    "format": "prettier --write \"src/**/*.{js,html,css}\"",
+    "validate": "npm run lint && npm run format && npm run test"
+  },
+  "dependencies": {
+    "@sentry/browser": "^7.101.1"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "live-server": "^1.2.2",
-    "nodemon": "^3.1.9",
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@testing-library/dom": "^9.3.4",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/user-event": "^14.5.2",
+    "babel-jest": "^29.7.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "cypress": "^13.6.6",
+    "esbuild": "^0.20.1",
+    "eslint": "^8.57.0",
+    "html-minifier-terser": "^7.2.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "prettier": "^3.2.5",
+    "sirv-cli": "^2.0.2",
     "tailwindcss": "^3.4.1"
+  },
+  "overrides": {
+    "glob": "^10.3.10",
+    "semver": "^7.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

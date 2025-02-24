@@ -1,15 +1,17 @@
+import { initSentry, logError } from "./sentry-config";
+
+// Initialize Sentry in production
+initSentry();
+
 // Component loading functionality
 async function loadComponent(name) {
   try {
     const path = `/components/${name}.html`;
-    console.log(`[DEBUG] Loading ${name} from path: ${path}`);
     const response = await fetch(path);
     if (!response.ok) throw new Error(`Failed to load ${name} component`);
-    const content = await response.text();
-    console.log(`[DEBUG] ${name} content loaded, length: ${content.length}`);
-    return content;
+    return await response.text();
   } catch (error) {
-    console.error(`Error loading ${name} component:`, error);
+    logError(error, `Loading component: ${name}`);
     return "";
   }
 }
@@ -18,7 +20,7 @@ async function loadComponent(name) {
 function handleImageLoading() {
   const imageObserver = new IntersectionObserver(
     (entries, observer) => {
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         if (entry.isIntersecting) {
           const img = entry.target;
           // Start loading the image before it comes into view
@@ -43,14 +45,14 @@ function handleImageLoading() {
   );
 
   const images = document.querySelectorAll("img[data-src]");
-  images.forEach((img) => {
+  images.forEach(img => {
     imageObserver.observe(img);
     img.classList.add("fade-in");
   });
 
   // Immediately load images that are already in view
   const visibleImages = document.querySelectorAll("img:not([data-src])");
-  visibleImages.forEach((img) => {
+  visibleImages.forEach(img => {
     img.classList.add("fade-in", "loaded");
   });
 }
@@ -60,7 +62,7 @@ function preloadNextSectionImages(currentSection) {
   const nextSection = currentSection.nextElementSibling;
   if (nextSection) {
     const images = nextSection.querySelectorAll("img[data-src]");
-    images.forEach((img) => {
+    images.forEach(img => {
       const preloadLink = document.createElement("link");
       preloadLink.rel = "preload";
       preloadLink.as = "image";
@@ -72,7 +74,7 @@ function preloadNextSectionImages(currentSection) {
 
 // Handle smooth scrolling with preloading
 function handleSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener("click", function (e) {
       e.preventDefault();
       const targetId = this.getAttribute("href");
@@ -80,7 +82,7 @@ function handleSmoothScroll() {
       if (target) {
         // Preload images in the target section
         const images = target.querySelectorAll("img[data-src]");
-        images.forEach((img) => {
+        images.forEach(img => {
           const preloadLink = document.createElement("link");
           preloadLink.rel = "preload";
           preloadLink.as = "image";
@@ -100,7 +102,7 @@ function handleSmoothScroll() {
 // Preload all images
 function preloadAllImages() {
   const allImages = document.querySelectorAll("img");
-  allImages.forEach((img) => {
+  allImages.forEach(img => {
     const src = img.src || img.dataset.src;
     if (src) {
       const preloadLink = document.createElement("link");
@@ -125,7 +127,7 @@ async function initComponents() {
       const mobileMenu = document.querySelector("#mobileMenu");
 
       if (menuBtn && mobileMenu) {
-        menuBtn.addEventListener("click", (e) => {
+        menuBtn.addEventListener("click", e => {
           e.preventDefault();
           mobileMenu.classList.toggle("hidden");
         });
@@ -166,14 +168,11 @@ async function initComponents() {
       handleSmoothScroll();
     }
   } catch (error) {
-    console.error("Error in initComponents:", error);
+    logError(error, "Initializing components");
   }
 }
 
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("[DEBUG] DOM loaded, initializing components");
-  initComponents().catch((error) =>
-    console.error("Error in initialization:", error)
-  );
+  initComponents().catch(error => logError(error, "DOM initialization"));
 });
