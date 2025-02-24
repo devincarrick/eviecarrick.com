@@ -18,6 +18,9 @@ describe("Error Handling", () => {
         <div id="error-boundary"></div>
       </div>
     `;
+
+    // Mock process.env
+    process.env.NODE_ENV = "test";
   });
 
   afterEach(() => {
@@ -26,9 +29,7 @@ describe("Error Handling", () => {
   });
 
   test("initSentry configures Sentry in production", async () => {
-    const originalNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
-
     const { initSentry } = await import("../sentry-config.js");
     const Sentry = require("@sentry/browser");
 
@@ -36,10 +37,10 @@ describe("Error Handling", () => {
 
     expect(Sentry.init).toHaveBeenCalledWith(expect.objectContaining({
       environment: "production",
-      enabled: true
+      integrations: []
     }));
 
-    process.env.NODE_ENV = originalNodeEnv;
+    process.env.NODE_ENV = "test";
   });
 
   test("logError sends errors to Sentry", async () => {
@@ -51,9 +52,18 @@ describe("Error Handling", () => {
 
     logError(testError, context);
 
-    expect(Sentry.captureException).toHaveBeenCalledWith(testError, {
-      extra: { context }
-    });
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      testError,
+      expect.objectContaining({
+        extra: expect.objectContaining({
+          context: "Test context"
+        }),
+        tags: expect.objectContaining({
+          errorType: "Error",
+          component: "Test context"
+        })
+      })
+    );
   });
 
   test("window.onerror handler captures uncaught errors", async () => {

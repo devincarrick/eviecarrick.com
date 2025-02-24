@@ -6,11 +6,13 @@ describe("Navigation", () => {
     // Setup DOM with navigation elements
     document.body.innerHTML = `
       <header>
-        <button id="menuBtn" aria-label="Toggle menu">Menu</button>
-        <nav id="mobileMenu" class="hidden">
-          <a href="#hero">Home</a>
-          <a href="#editorial">Editorial</a>
-          <a href="#portfolio">Portfolio</a>
+        <nav>
+          <button id="menuBtn" aria-label="Toggle menu">Menu</button>
+          <div id="mobileMenu" class="hidden">
+            <a href="#hero">Home</a>
+            <a href="#editorial">Editorial</a>
+            <a href="#portfolio">Portfolio</a>
+          </div>
         </nav>
       </header>
       <main>
@@ -36,15 +38,16 @@ describe("Navigation", () => {
     const menuBtn = document.querySelector("#menuBtn");
     const mobileMenu = document.querySelector("#mobileMenu");
 
-    // Initial state
+    expect(menuBtn).not.toBeNull();
+    expect(mobileMenu).not.toBeNull();
     expect(mobileMenu).toHaveClass("hidden");
 
     // Click menu button
-    menuBtn.click();
+    await userEvent.click(menuBtn);
     expect(mobileMenu).not.toHaveClass("hidden");
 
     // Click again to hide
-    menuBtn.click();
+    await userEvent.click(menuBtn);
     expect(mobileMenu).toHaveClass("hidden");
   });
 
@@ -52,18 +55,21 @@ describe("Navigation", () => {
     const { handleSmoothScroll } = await import("../main.js");
     handleSmoothScroll();
 
-    const editorialLink = document.querySelector("a[href=\"#editorial\"]");
+    const editorialLink = document.querySelector('a[href="#editorial"]');
     const editorialSection = document.querySelector("#editorial");
     
-    // Mock preventDefault
-    const mockPreventDefault = jest.fn();
-    
-    // Click the link
-    editorialLink.dispatchEvent(new MouseEvent("click", {
-      preventDefault: mockPreventDefault
-    }));
+    expect(editorialLink).not.toBeNull();
+    expect(editorialSection).not.toBeNull();
 
-    expect(mockPreventDefault).toHaveBeenCalled();
+    // Create and dispatch a click event
+    const clickEvent = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true
+    });
+    
+    editorialLink.dispatchEvent(clickEvent);
+
+    expect(clickEvent.defaultPrevented).toBe(true);
     expect(editorialSection.scrollIntoView).toHaveBeenCalledWith({
       behavior: "smooth",
       block: "start"

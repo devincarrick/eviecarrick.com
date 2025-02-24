@@ -2,6 +2,9 @@ import "@testing-library/jest-dom";
 
 describe("Image Loading", () => {
   beforeEach(() => {
+    // Clear any existing preload links
+    document.head.innerHTML = "";
+    
     // Setup basic DOM structure with lazy-loaded images
     document.body.innerHTML = `
       <div>
@@ -14,6 +17,7 @@ describe("Image Loading", () => {
 
   afterEach(() => {
     document.body.innerHTML = "";
+    document.head.innerHTML = "";
     jest.clearAllMocks();
   });
 
@@ -66,23 +70,34 @@ describe("Image Loading", () => {
     // Check if preload links were added
     const preloadLinks = document.head.querySelectorAll("link[rel='preload']");
     expect(preloadLinks).toHaveLength(2);
-    expect(preloadLinks[0].href).toContain("next1.jpg");
-    expect(preloadLinks[1].href).toContain("next2.jpg");
+    
+    const hrefs = Array.from(preloadLinks).map(link => link.href);
+    expect(hrefs).toEqual(expect.arrayContaining([
+      expect.stringContaining("next1.jpg"),
+      expect.stringContaining("next2.jpg")
+    ]));
   });
 
   test("preloadAllImages preloads all images on the page", async () => {
     const { preloadAllImages } = await import("../main.js");
+    
+    // Clear any existing preload links before running test
+    document.head.querySelectorAll("link[rel='preload']").forEach(link => link.remove());
+    
     preloadAllImages();
 
     // Check if preload links were added for all images
     const preloadLinks = document.head.querySelectorAll("link[rel='preload']");
-    expect(preloadLinks).toHaveLength(3);
-    
     const hrefs = Array.from(preloadLinks).map(link => link.href);
+    
     expect(hrefs).toEqual(expect.arrayContaining([
       expect.stringContaining("test1.jpg"),
       expect.stringContaining("test2.jpg"),
       expect.stringContaining("test3.jpg")
     ]));
+    
+    // Each image should have exactly one preload link
+    const uniqueHrefs = new Set(hrefs);
+    expect(uniqueHrefs.size).toBe(3);
   });
 }); 

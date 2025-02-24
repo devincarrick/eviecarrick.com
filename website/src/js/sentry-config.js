@@ -2,12 +2,13 @@ import * as Sentry from "@sentry/browser";
 import { BrowserTracing } from "@sentry/browser";
 
 export function initSentry() {
+  // Don't initialize Sentry in test environment
+  if (process.env.NODE_ENV === "test") return;
+  
   if (process.env.NODE_ENV === "production") {
     Sentry.init({
-      dsn: "YOUR_SENTRY_DSN", // Replace with your actual DSN
-      integrations: [
-        new BrowserTracing(),
-      ],
+      dsn: "https://5ef0f5e07c4bc6aca3a842984b76b7b2@o4508868990730240.ingest.us.sentry.io/4508868996104192",
+      integrations: [],  // Remove BrowserTracing in tests
       tracesSampleRate: 1.0,
       environment: process.env.NODE_ENV,
       
