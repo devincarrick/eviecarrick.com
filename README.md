@@ -100,6 +100,6 @@ Contributions, issues, and feature requests are welcome! Feel free to check [iss
 
 ## 📬 Contact
 
-Evie Carrick - [@eviecarrick](https://twitter.com/eviecarrick) - evie@eviecarrick.com
+Devin Carrick - devin.carrick@gmail.com
 
 Project Link: [https://eviecarrick.com](https://eviecarrick.com)
