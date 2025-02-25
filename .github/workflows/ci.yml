@@ -48,7 +48,17 @@ jobs:
     - name: Run E2E tests
       run: npm run test:e2e
       
+    - name: Check coverage directory
+      id: check_coverage
+      run: |
+        if [ -d "coverage" ]; then
+          echo "coverage_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "coverage_exists=false" >> $GITHUB_OUTPUT
+        fi
+      
     - name: Upload test coverage
+      if: steps.check_coverage.outputs.coverage_exists == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report

@@ -60,11 +60,9 @@ export class PortfolioInfraStack extends cdk.Stack {
       domainName,
     });
 
-    // Create ACM certificate
-    const certificate = new acm.DnsValidatedCertificate(this, `Certificate-${stage}`, {
+    // Create ACM certificate using the newer Certificate construct
+    const certificate = new acm.Certificate(this, `Certificate-${stage}`, {
       domainName: siteDomain,
-      hostedZone,
-      region: "us-east-1", // CloudFront requires certificates in us-east-1
       validation: acm.CertificateValidation.fromDns(hostedZone),
     });
 
