@@ -1,1 +1,9 @@
-{}
+{
+  "hosted-zone:account=296823332599:domainName=eviecarrick.com:region=us-east-1": {
+    "Id": "/hostedzone/Z029633570U83WANWX5K",
+    "Name": "eviecarrick.com."
+  },
+  "acknowledged-issue-numbers": [
+    32775
+  ]
+}
