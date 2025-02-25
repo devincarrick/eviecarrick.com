@@ -5,6 +5,9 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { Construct } from "constructs";
 
 interface EnvironmentConfig {
@@ -47,6 +50,23 @@ export class PortfolioInfraStack extends cdk.Stack {
     };
 
     const config = envConfigs[stage];
+
+    // Domain configuration
+    const domainName = "eviecarrick.com";
+    const siteDomain = stage === "prod" ? domainName : `${stage}.${domainName}`;
+
+    // Lookup the hosted zone
+    const hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
+      domainName,
+    });
+
+    // Create ACM certificate
+    const certificate = new acm.DnsValidatedCertificate(this, `Certificate-${stage}`, {
+      domainName: siteDomain,
+      hostedZone,
+      region: "us-east-1", // CloudFront requires certificates in us-east-1
+      validation: acm.CertificateValidation.fromDns(hostedZone),
+    });
 
     // Create S3 bucket with blocked public access
     const websiteBucket = new s3.Bucket(this, `WebsiteBucket-${stage}`, {
@@ -139,6 +159,8 @@ export class PortfolioInfraStack extends cdk.Stack {
             },
           ],
         },
+        domainNames: [siteDomain],
+        certificate,
         defaultRootObject: "index.html",
         errorResponses: [
           {
@@ -170,6 +192,24 @@ export class PortfolioInfraStack extends cdk.Stack {
           : undefined,
       }
     );
+
+    // Create Route53 record
+    new route53.ARecord(this, `AliasRecord-${stage}`, {
+      zone: hostedZone,
+      target: route53.RecordTarget.fromAlias(
+        new targets.CloudFrontTarget(distribution)
+      ),
+      recordName: siteDomain,
+    });
+
+    // Create AAAA record for IPv6
+    new route53.AaaaRecord(this, `AaaaRecord-${stage}`, {
+      zone: hostedZone,
+      target: route53.RecordTarget.fromAlias(
+        new targets.CloudFrontTarget(distribution)
+      ),
+      recordName: siteDomain,
+    });
 
     // Create CloudWatch Dashboard
     const dashboard = new cloudwatch.Dashboard(this, `Dashboard-${stage}`, {
