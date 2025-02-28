@@ -74,18 +74,6 @@ export class PortfolioInfraStack extends cdk.Stack {
     );
 
     // Add security policy for SSL enforcement
-    const cfnBucket = websiteBucket.node.defaultChild as s3.CfnBucket;
-    cfnBucket.addPropertyOverride('BucketEncryption', {
-      ServerSideEncryptionConfiguration: [
-        {
-          ServerSideEncryptionByDefault: {
-            SSEAlgorithm: 'AES256'
-          }
-        }
-      ]
-    });
-
-    // Add security policy for SSL enforcement
     new s3.BucketPolicy(this, `BucketPolicy-${stage}`, {
       bucket: websiteBucket,
       policyDocument: new iam.PolicyDocument({
