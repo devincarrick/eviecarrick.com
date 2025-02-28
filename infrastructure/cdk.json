@@ -1,5 +1,5 @@
 {
-  "app": "node --loader ts-node/esm bin/infrastructure.ts",
+  "app": "npx ts-node bin/infrastructure.ts",
   "watch": {
     "include": ["**"],
     "exclude": [
