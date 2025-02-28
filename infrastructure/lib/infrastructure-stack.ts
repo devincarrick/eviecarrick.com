@@ -170,6 +170,7 @@ export class PortfolioInfraStack extends cdk.Stack {
           ? new s3.Bucket(this, `LogBucket-${stage}`, {
               removalPolicy: config.removalPolicy,
               autoDeleteObjects: config.autoDeleteObjects,
+              objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
               lifecycleRules: [
                 {
                   expiration: cdk.Duration.days(7),
