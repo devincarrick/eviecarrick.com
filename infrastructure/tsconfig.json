@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "moduleResolution": "node",
-    "lib": ["es2020", "dom"],
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,

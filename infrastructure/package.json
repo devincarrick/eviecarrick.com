@@ -1,6 +1,7 @@
 {
   "name": "infrastructure",
   "version": "0.1.0",
+  "type": "module",
   "bin": {
     "infrastructure": "bin/infrastructure.js"
   },
@@ -14,7 +15,7 @@
     "lint": "eslint .",
     "build": "tsc",
     "watch": "tsc -w",
-    "cdk": "cdk"
+    "cdk": "NODE_OPTIONS='--loader ts-node/esm' cdk"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
