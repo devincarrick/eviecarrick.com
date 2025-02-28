@@ -67,37 +67,43 @@ export class PortfolioInfraStack extends cdk.Stack {
     });
 
     // Create S3 bucket with blocked public access
-    const websiteBucket = new s3.Bucket(this, `WebsiteBucket-${stage}`, {
-      bucketName: `portfolio-${stage}-${this.account}`.toLowerCase(),
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: config.removalPolicy,
-      autoDeleteObjects: config.autoDeleteObjects,
-      cors: [
+    const websiteBucket = s3.Bucket.fromBucketName(
+      this,
+      `WebsiteBucket-${stage}`,
+      `portfolio-${stage}-${this.account}`.toLowerCase()
+    );
+
+    // Add security policy for SSL enforcement
+    const cfnBucket = websiteBucket.node.defaultChild as s3.CfnBucket;
+    cfnBucket.addPropertyOverride('BucketEncryption', {
+      ServerSideEncryptionConfiguration: [
         {
-          allowedHeaders: ["*"],
-          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.HEAD],
-          allowedOrigins: ["*"],
-          maxAge: 3000,
-        },
-      ],
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
+          ServerSideEncryptionByDefault: {
+            SSEAlgorithm: 'AES256'
+          }
+        }
+      ]
     });
 
     // Add security policy for SSL enforcement
-    websiteBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.DENY,
-        actions: ["s3:*"],
-        resources: [websiteBucket.bucketArn, `${websiteBucket.bucketArn}/*`],
-        principals: [new iam.AnyPrincipal()],
-        conditions: {
-          Bool: {
-            "aws:SecureTransport": "false",
-          },
-        },
-      })
-    );
+    new s3.BucketPolicy(this, `BucketPolicy-${stage}`, {
+      bucket: websiteBucket,
+      policyDocument: new iam.PolicyDocument({
+        statements: [
+          new iam.PolicyStatement({
+            effect: iam.Effect.DENY,
+            actions: ['s3:*'],
+            resources: [websiteBucket.bucketArn, `${websiteBucket.bucketArn}/*`],
+            principals: [new iam.AnyPrincipal()],
+            conditions: {
+              Bool: {
+                'aws:SecureTransport': 'false',
+              },
+            },
+          }),
+        ],
+      }),
+    });
 
     // Create security headers function
     const securityHeadersFunction = new cf.Function(
