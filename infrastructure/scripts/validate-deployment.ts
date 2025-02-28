@@ -1,3 +1,5 @@
+export {};
+
 console.log("Starting validation script...");
 
 try {

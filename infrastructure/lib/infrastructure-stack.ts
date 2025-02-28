@@ -74,24 +74,19 @@ export class PortfolioInfraStack extends cdk.Stack {
     );
 
     // Add security policy for SSL enforcement
-    new s3.BucketPolicy(this, `BucketPolicy-${stage}`, {
-      bucket: websiteBucket,
-      policyDocument: new iam.PolicyDocument({
-        statements: [
-          new iam.PolicyStatement({
-            effect: iam.Effect.DENY,
-            actions: ['s3:*'],
-            resources: [websiteBucket.bucketArn, `${websiteBucket.bucketArn}/*`],
-            principals: [new iam.AnyPrincipal()],
-            conditions: {
-              Bool: {
-                'aws:SecureTransport': 'false',
-              },
-            },
-          }),
-        ],
-      }),
+    const sslPolicy = new iam.PolicyStatement({
+      effect: iam.Effect.DENY,
+      actions: ['s3:*'],
+      resources: [websiteBucket.bucketArn, `${websiteBucket.bucketArn}/*`],
+      principals: [new iam.AnyPrincipal()],
+      conditions: {
+        Bool: {
+          'aws:SecureTransport': 'false',
+        },
+      },
     });
+
+    websiteBucket.addToResourcePolicy(sslPolicy);
 
     // Create security headers function
     const securityHeadersFunction = new cf.Function(
