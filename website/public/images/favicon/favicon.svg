@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="32" height="32"><svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .text {
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 24px;
+      fill: transparent;
+      stroke: #F541A6;
+      stroke-width: 1.5;
+    }
+  </style>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" class="text" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}">EC</text>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
