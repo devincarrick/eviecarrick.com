@@ -4,10 +4,10 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development npm run build && concurrently \"npm run watch:css\" \"npm run watch:html\" \"npm run serve\"",
     "serve": "sirv dist --port 3000 --dev",
-    "watch:css": "./node_modules/.bin/tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "watch:css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
     "watch:html": "nodemon --watch src --ext html --exec \"npm run copy:files\"",
     "build": "cross-env NODE_ENV=production npm run build:css && npm run build:js && npm run copy:files && npm run build:html",
-    "build:css": "./node_modules/.bin/tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "build:css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
     "build:js": "esbuild src/js/main.js --bundle --minify --sourcemap --outfile=dist/js/main.js",
     "build:html": "html-minifier-terser --input-dir dist --output-dir dist --file-ext html --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true",
     "copy:files": "mkdir -p dist/js dist/components && cp -r public/* dist/ && cp -r src/components/* dist/components/ && cp -r src/*.html dist/",
