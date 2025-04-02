@@ -24,7 +24,7 @@
     "validate": "npm run lint && npm run format && npm run test"
   },
   "dependencies": {
-    "@sentry/browser": "^9.1.0"
+    "@sentry/browser": "^9.10.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
