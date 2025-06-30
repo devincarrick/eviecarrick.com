@@ -1,7 +1,5 @@
 # Evie Carrick's Portfolio Website
 
-[![Deployment Status](https://github.com/eviecarrick/eviecarrick.com/actions/workflows/deploy.yml/badge.svg)](https://github.com/eviecarrick/eviecarrick.com/actions)
-
 A modern, responsive portfolio website built with ❤️ for Evie Carrick!
 
 ![Website Preview](docs/assets/website-preview.jpg)
@@ -38,28 +36,6 @@ A modern, responsive portfolio website built with ❤️ for Evie Carrick!
 - npm (v9 or higher)
 - AWS CLI (for deployment)
 
-## 🚦 Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/eviecarrick/eviecarrick.com.git
-   cd eviecarrick.com
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   cd website
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
-
 ## 🏗️ Project Structure
 
 ```
@@ -93,10 +69,6 @@ The website is automatically deployed through GitHub Actions when changes are pu
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/eviecarrick/eviecarrick.com/issues).
 
 ## 📬 Contact
 
