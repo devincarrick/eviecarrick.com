@@ -35,7 +35,7 @@
     "babel-jest": "^29.7.0",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
-    "cypress": "^14.2.1",
+    "cypress": "^15.0.0",
     "esbuild": "^0.25.2",
     "eslint": "^8.56.0",
     "eslint-plugin-jest": "^28.11.0",
