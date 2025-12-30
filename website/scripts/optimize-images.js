@@ -66,51 +66,81 @@ async function optimizeImage(inputPath, outputPath, config) {
     return { originalSize, optimizedSize: 0, saved: 0 };
   }
 
-  // Process with sharp
-  const image = sharp(inputPath);
-  const metadata = await image.metadata();
+  try {
+    // Process with sharp
+    const image = sharp(inputPath);
+    const metadata = await image.metadata();
 
-  let pipeline = image;
+    let pipeline = image;
 
-  // Resize if needed
-  if (metadata.width > config.maxWidth) {
-    pipeline = pipeline.resize(config.maxWidth, null, {
-      withoutEnlargement: true,
-      fit: 'inside'
-    });
+    // Resize if needed
+    if (metadata.width > config.maxWidth) {
+      pipeline = pipeline.resize(config.maxWidth, null, {
+        withoutEnlargement: true,
+        fit: 'inside'
+      });
+    }
+
+    // Convert to WebP
+    pipeline = pipeline.webp({ quality: config.quality });
+
+    await pipeline.toFile(outputPath);
+
+    const optimizedSize = await getFileSize(outputPath);
+    const saved = originalSize - optimizedSize;
+    const percent = ((saved / originalSize) * 100).toFixed(1);
+
+    console.log(`  ✓ ${path.basename(inputPath)}`);
+    console.log(`    ${formatBytes(originalSize)} → ${formatBytes(optimizedSize)} (saved ${formatBytes(saved)}, ${percent}%)`);
+
+    return { originalSize, optimizedSize, saved };
+  } catch (error) {
+    // Clean up partial output file if it exists
+    try {
+      await fs.unlink(outputPath);
+    } catch {
+      // Ignore cleanup errors
+    }
+    throw new Error(`Failed to optimize ${path.basename(inputPath)}: ${error.message}`);
   }
-
-  // Convert to WebP
-  pipeline = pipeline.webp({ quality: config.quality });
-
-  await pipeline.toFile(outputPath);
-
-  const optimizedSize = await getFileSize(outputPath);
-  const saved = originalSize - optimizedSize;
-  const percent = ((saved / originalSize) * 100).toFixed(1);
-
-  console.log(`  ✓ ${path.basename(inputPath)}`);
-  console.log(`    ${formatBytes(originalSize)} → ${formatBytes(optimizedSize)} (saved ${formatBytes(saved)}, ${percent}%)`);
-
-  return { originalSize, optimizedSize, saved };
 }
 
 async function backupOriginal(filename) {
   const sourcePath = path.join(IMAGES_DIR, filename);
   const backupPath = path.join(ORIGINALS_DIR, filename);
 
+  // Verify source file exists
+  try {
+    await fs.access(sourcePath);
+  } catch {
+    console.log(`  ✗ Source file ${filename} not found`);
+    return false;
+  }
+
+  // Check if already backed up
   try {
     await fs.access(backupPath);
     console.log(`  ✓ ${filename} already backed up`);
     return true;
   } catch {
-    if (!DRY_RUN) {
-      await fs.copyFile(sourcePath, backupPath);
-      console.log(`  ✓ Backed up ${filename}`);
-    } else {
-      console.log(`  Would back up ${filename}`);
-    }
+    // Need to create backup
+  }
+
+  if (DRY_RUN) {
+    console.log(`  Would back up ${filename}`);
     return true;
+  }
+
+  // Perform backup and validate
+  try {
+    await fs.copyFile(sourcePath, backupPath);
+    // Verify backup succeeded
+    await fs.access(backupPath);
+    console.log(`  ✓ Backed up ${filename}`);
+    return true;
+  } catch (error) {
+    console.log(`  ✗ Failed to back up ${filename}: ${error.message}`);
+    return false;
   }
 }
 
@@ -130,7 +160,11 @@ async function optimizeSpecificImage(filename, config) {
   }
 
   // Backup original
-  await backupOriginal(filename);
+  const backupSuccess = await backupOriginal(filename);
+  if (!backupSuccess) {
+    console.log(`  ✗ Skipping optimization due to backup failure`);
+    return { originalSize: 0, optimizedSize: 0, saved: 0 };
+  }
 
   // Optimize
   return await optimizeImage(inputPath, outputPath, config);
@@ -140,7 +174,9 @@ async function optimizeCardImages(config) {
   console.log(`\nProcessing ${config.description}:`);
 
   const files = await fs.readdir(IMAGES_DIR);
-  const cardFiles = files.filter(f => f.endsWith('-card.jpg'));
+  // Convert glob pattern to suffix match (e.g., '*-card.jpg' -> '-card.jpg')
+  const suffix = config.pattern.replace('*', '');
+  const cardFiles = files.filter(f => f.endsWith(suffix));
 
   if (cardFiles.length === 0) {
     console.log('  ✗ No card images found');
@@ -150,18 +186,35 @@ async function optimizeCardImages(config) {
   let totalOriginal = 0;
   let totalOptimized = 0;
   let totalSaved = 0;
+  const failures = [];
 
   for (const filename of cardFiles) {
     const inputPath = path.join(IMAGES_DIR, filename);
     const outputFilename = filename.replace('.jpg', '.webp');
     const outputPath = path.join(IMAGES_DIR, outputFilename);
 
-    await backupOriginal(filename);
+    try {
+      const backupSuccess = await backupOriginal(filename);
+      if (!backupSuccess) {
+        failures.push({ filename, reason: 'Backup failed' });
+        continue;
+      }
 
-    const result = await optimizeImage(inputPath, outputPath, config);
-    totalOriginal += result.originalSize;
-    totalOptimized += result.optimizedSize;
-    totalSaved += result.saved;
+      const result = await optimizeImage(inputPath, outputPath, config);
+      totalOriginal += result.originalSize;
+      totalOptimized += result.optimizedSize;
+      totalSaved += result.saved;
+    } catch (error) {
+      failures.push({ filename, reason: error.message });
+      console.log(`  ✗ Failed to process ${filename}: ${error.message}`);
+    }
+  }
+
+  if (failures.length > 0) {
+    console.log(`\n  Failed to process ${failures.length} card image(s):`);
+    failures.forEach(({ filename, reason }) => {
+      console.log(`    - ${filename}: ${reason}`);
+    });
   }
 
   return { originalSize: totalOriginal, optimizedSize: totalOptimized, saved: totalSaved };
