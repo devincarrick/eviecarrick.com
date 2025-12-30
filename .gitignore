@@ -30,3 +30,5 @@ dist/
 
 # Image originals backup
 website/public/images/originals/
+
+docs/
