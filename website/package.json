@@ -21,7 +21,12 @@
     "lint": "eslint src/js/**/*.js",
     "lint:fix": "eslint src/js/**/*.js --fix",
     "format": "prettier --write \"src/**/*.{js,html,css}\"",
-    "validate": "npm run lint && npm run format && npm run test"
+    "validate": "npm run lint && npm run format && npm run test",
+    "optimize:images": "node scripts/optimize-images.js",
+    "optimize:images:check": "node scripts/check-unoptimized-images.js",
+    "update:image-refs": "node scripts/update-image-refs.js",
+    "rollback:images": "node scripts/rollback-images.js",
+    "prebuild": "npm run optimize:images:check"
   },
   "dependencies": {
     "@sentry/browser": "^9.10.1"
@@ -45,6 +50,7 @@
     "nodemon": "^3.1.0",
     "prettier": "^3.2.5",
     "rimraf": "^6.0.1",
+    "sharp": "^0.33.5",
     "sirv-cli": "^3.0.1",
     "start-server-and-test": "^2.0.10",
     "tailwindcss": "^3.4.1"

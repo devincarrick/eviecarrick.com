@@ -7,6 +7,9 @@ node_modules/
 cdk.out/
 .cdk.staging/
 
+# Git worktrees
+.worktrees/
+
 # AWS credentials
 .env
 .aws/
@@ -24,3 +27,8 @@ cdk.out/
 
 # Ignore build output
 dist/
+
+# Image originals backup
+website/public/images/originals/
+
+docs/
