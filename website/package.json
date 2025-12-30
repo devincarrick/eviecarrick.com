@@ -21,7 +21,12 @@
     "lint": "eslint src/js/**/*.js",
     "lint:fix": "eslint src/js/**/*.js --fix",
     "format": "prettier --write \"src/**/*.{js,html,css}\"",
-    "validate": "npm run lint && npm run format && npm run test"
+    "validate": "npm run lint && npm run format && npm run test",
+    "optimize:images": "node scripts/optimize-images.js",
+    "optimize:images:check": "node scripts/check-unoptimized-images.js",
+    "update:image-refs": "node scripts/update-image-refs.js",
+    "rollback:images": "node scripts/rollback-images.js",
+    "prebuild": "npm run optimize:images:check"
   },
   "dependencies": {
     "@sentry/browser": "^9.10.1"
