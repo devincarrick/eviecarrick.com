@@ -23,13 +23,15 @@ async function updateImageReferences() {
     const content = await fs.readFile(filePath, 'utf-8');
 
     // Replace .jpg with .webp in image src attributes
+    const matches = content.match(/(<img[^>]+src=["'])([^"']+)\.jpg(["'])/g) || [];
+    const changes = matches.length;
+
     const updatedContent = content.replace(
       /(<img[^>]+src=["'])([^"']+)\.jpg(["'])/g,
       '$1$2.webp$3'
     );
 
     if (content !== updatedContent) {
-      const changes = (content.match(/\.jpg/g) || []).length;
       totalChanges += changes;
 
       console.log(`✓ ${filename}: ${changes} reference(s) updated`);
