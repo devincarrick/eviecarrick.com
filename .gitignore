@@ -27,3 +27,6 @@ cdk.out/
 
 # Ignore build output
 dist/
+
+# Image originals backup
+website/public/images/originals/
