@@ -104,6 +104,7 @@ export class PortfolioInfraStack extends cdk.Stack {
           headers['x-xss-protection'] = { value: '1; mode=block' };
           headers['referrer-policy'] = { value: 'strict-origin-when-cross-origin' };
           headers['permissions-policy'] = { value: 'geolocation=(), camera=(), microphone=()' };
+          headers['content-security-policy'] = { value: "default-src 'self'; img-src 'self' https:; script-src 'self' https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.sentry.io" };
           
           return response;
         }
