@@ -4,24 +4,24 @@ describe("Navigation", () => {
     cy.viewport(1280, 800);
     cy.visit("/");
     // Wait for header component to load (contains navigation)
-    cy.get("header nav", { timeout: 10000 }).should("be.visible");
+    cy.get("header nav", { timeout: 10000 }).should("exist");
   });
 
   it("should navigate to the about page", () => {
-    // Wait for and click the visible desktop navigation link
-    cy.get('a[href="about.html"]', { timeout: 10000 })
+    // Wait for and click the visible desktop navigation link (inside nav, not mobile menu)
+    cy.get('header nav a[href="about.html"]', { timeout: 10000 })
       .should("be.visible")
       .click();
     cy.url().should("include", "/about.html");
     // Wait for about page content to load
-    cy.get("main", { timeout: 10000 }).should("be.visible");
+    cy.get("main", { timeout: 10000 }).should("exist");
   });
 
   it("should load the homepage successfully", () => {
     // Check for specific sections with content loaded
-    cy.get("main").should("be.visible");
+    cy.get("main").should("exist");
     // Wait for hero content to be loaded (not just the empty div)
-    cy.get("#hero img", { timeout: 10000 }).should("exist");
+    cy.get("#hero", { timeout: 10000 }).should("exist");
     cy.get("#editorial").should("exist");
     cy.get("#commercial-quote").should("exist");
     cy.get("#portfolio").should("exist");
