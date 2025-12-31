@@ -1,13 +1,15 @@
 describe("Navigation", () => {
   beforeEach(() => {
+    // Set desktop viewport to ensure navigation links are visible
+    cy.viewport(1280, 800);
     cy.visit("/");
     // Wait for components to load
     cy.get("#hero").should("exist");
   });
 
   it("should navigate to the about page", () => {
-    // Make selector more specific or use first matching link
-    cy.get("a[href*='about']").first().click();
+    // Click the visible desktop navigation link
+    cy.get("a[href*='about']").should("be.visible").first().click();
     cy.url().should("include", "/about.html");
     // Wait for about page content to load
     cy.get("main").should("be.visible");
