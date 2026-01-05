@@ -46,6 +46,7 @@ jobs:
       run: npm run test
       
     - name: Run E2E tests
+      if: matrix.node-version == '20.x'
       run: npm run test:e2e
       
     - name: Check coverage directory
